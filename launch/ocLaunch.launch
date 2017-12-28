@@ -1,0 +1,15 @@
+<launch>
+<node
+pkg="grid_ndt"
+type="receivePcd"
+name="receivePcd"
+required="true"
+output="screen"
+/>
+
+    <node
+    name="rviz"
+    pkg="rviz"
+    type="rviz"
+    required="true" />
+</launch>

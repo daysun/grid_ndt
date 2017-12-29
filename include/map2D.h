@@ -131,7 +131,7 @@ struct CmpByKeyUD {
 struct Slope{
     Vector3f normal; //Normal vector of the slope
     float rough;  //roughness of the slope
-//     Vec3 mean;  //mean value of the slope
+     Vec3 mean;  //mean value of the slope
      float h;
      float g;
      float f;  //f = g+h
@@ -233,7 +233,7 @@ class TwoDmap {
     }
 
     void countReachable(string leftMtn, list<Slope *> & list,RobotSphere & robot,
-                        string morton_z,Vector3f normal){
+                        string morton_z,Vector3f normal,Vec3 mean){
         //find the corresponding cell-mortonxy
         map<string,Cell *>::iterator mit=  map_cell.find(leftMtn);
         if(mit != map_cell.end()){
@@ -243,8 +243,10 @@ class TwoDmap {
                   if(sit->second->up != true)
                       if((sit->second)->rough <= robot.getRough())
                           if(countAngle((sit->second)->normal,normal) <= robot.getAngle())
-                              if((abs(mtnZToNum((sit->second)->morton_z) - mtnZToNum(morton_z)) <= ceil((float)robot.getReachableHeight()/gridLen)))
+                              if(abs((sit->second)->mean.z - mean.z )<= robot.getReachableHeight())//use mean to compute
                                   list.push_back(sit->second);
+//                              if((abs(mtnZToNum((sit->second)->morton_z) - mtnZToNum(morton_z)) <= ceil((float)robot.getReachableHeight()/gridLen)))
+//                                  list.push_back(sit->second);
                   sit++;
              }
          }
@@ -293,10 +295,15 @@ class TwoDmap {
 //        cout<<"surrounding neighbors size "<<AllSlope.size()<<endl;
         list<Slope *>::iterator itSlope = AllSlope.begin();
         while(itSlope != AllSlope.end()){
-            if(mtnZToNum((*itSlope)->morton_z) <= mtnZToNum(slope->morton_z) && (*itSlope)->up == true)
+//            if(mtnZToNum((*itSlope)->morton_z) <= mtnZToNum(slope->morton_z) && (*itSlope)->up == true)
+//                return true;//collide
+//            if((mtnZToNum((*itSlope)->morton_z) > mtnZToNum(slope->morton_z)) &&
+//                    (mtnZToNum((*itSlope)->morton_z) < mtnZToNum(slope->morton_z)+2*r/gridLen))
+//                return true;//collide
+            if(((*itSlope)->mean.z <= slope->mean.z) && (*itSlope)->up == true)
                 return true;//collide
-            if((mtnZToNum((*itSlope)->morton_z) > mtnZToNum(slope->morton_z)) &&
-                    (mtnZToNum((*itSlope)->morton_z) < mtnZToNum(slope->morton_z)+2*r/gridLen))
+            if(((*itSlope)->mean.z > slope->mean.z) &&
+                    ((*itSlope)->mean.z < slope->mean.z)+2*r)
                 return true;//collide
             itSlope++;
         }
@@ -309,16 +316,19 @@ class TwoDmap {
                 if(ss == (it->second)->map_slope.end()) cout<<"collide wrong\n";
                 ss++; //the next one
                 if(ss != (it->second)->map_slope.end()){
-                    int height = mtnZToNum((ss->second)->morton_z);
-                    if(height < (mtnZToNum(z)+2*r/gridLen)){
+//                    int height = mtnZToNum((ss->second)->morton_z);
+//                    if(height < (mtnZToNum(z)+2*r/gridLen))
+//                        return true;//collide
+//                    else
+//                        return false;//no collide
+                    if((ss->second)->mean.z < slope->mean.z + 2*r )
                         return true;//collide
-                    }else{
+                    else
                         return false;//no collide
-                    }
+
                 }
                 return false;//no collide
         }
-
     }
 
     float countAngle(Vector3f n1, Vector3f n2){
@@ -342,6 +352,7 @@ public:
     map<string,Cell *> map_cell; //xy_morton, cell
 
     //find slope based on position
+    ///no use
   Slope *  findSlope(Vec3 pos, string & morton_xy,string & morton_z){
          transMortonXYZ(pos,morton_xy,morton_z);
          map<string,Cell *>::iterator it = map_cell.find(morton_xy);
@@ -357,13 +368,6 @@ public:
   //for now-- no consideration for the height of destination
   float TravelCost(Vec3 cur,Vec3 des,float goal = 0){
       float cost = sqrt(pow(cur.x-des.x,2) + pow(cur.y-des.y,2));
-//        if(goal != 0){
-//            if(goal > cur.z){
-//                des.z > cur.z ? cost=cost: cost += (cur.z-des.z)*0.3 ; //parameters should be changed
-//            }else{
-//                 des.z < cur.z ? cost=cost: cost += (des.z - cur.z)*0.3 ;
-//            }
-//        }
         return cost;
   }
 
@@ -374,16 +378,17 @@ public:
          string morton_xy = slope->morton_xy;
          string morton_z= slope->morton_z;
          Vector3f normal = slope->normal;
+         Vec3 mean = slope->mean;
          int x,y;
          string belongXY = morton_xy.substr(0,1);
          int morton = strToInt( morton_xy.substr(1,morton_xy.length()-1));
          mortonToXY(x,y,morton);
          string leftMtn,rightMtn,forMtn,backMtn;
          countLRFB(belongXY,x,y,leftMtn,rightMtn,forMtn,backMtn); //adjust belong
-         countReachable(leftMtn,list,robot,morton_z,normal);
-         countReachable(rightMtn,list,robot,morton_z,normal);
-         countReachable(forMtn,list,robot,morton_z,normal);
-         countReachable(backMtn,list,robot,morton_z,normal);
+         countReachable(leftMtn,list,robot,morton_z,normal,mean);
+         countReachable(rightMtn,list,robot,morton_z,normal,mean);
+         countReachable(forMtn,list,robot,morton_z,normal,mean);
+         countReachable(backMtn,list,robot,morton_z,normal,mean);
          return list;
      }
 
@@ -433,6 +438,9 @@ public:
                                 slope->morton_z= (it->second)->z;
                                 slope->up = up,slope->down = down;
                                 slope->h = slope->g = slope->f = FLT_MAX;
+                                slope->mean.x = (it->second)->xyz_centroid(0);
+                                slope->mean.y = (it->second)->xyz_centroid(1);
+                                slope->mean.z = (it->second)->xyz_centroid(2);
                                 slope->father = NULL;//for path plan
                                 (it->second)->countRoughNormal(slope->rough,slope->normal);
                             }
@@ -446,6 +454,7 @@ public:
     }
 
     // change-add map
+    ///no consideration for now, maybe wrong
     bool change2DMap(){
         cout<<"start change 2D map\n";
         if(changeMorton_list.size() == 0)
@@ -599,6 +608,7 @@ public:
     }
 
     //change-delete map
+    ///no consideration for now, maybe wrong
     bool del2DMap(){
         cout<<"start delete 2D map\n";
         if(delMorton_list.size() == 0)
@@ -750,6 +760,8 @@ public:
     }
 
     //for visualiation
+    ///xy using node's morton_xy while z using node's mean.z
+    ///the rest is the same with this one
     void showSlopeList(ros::Publisher marker_pub,list<Slope *> & closed,float radius,int color =0){
         ros::Rate r(50);
         uint32_t shape = visualization_msgs::Marker::CUBE; //SPHERE ARROW CYLINDER
@@ -774,7 +786,8 @@ public:
                     m_s.action = visualization_msgs::Marker::ADD;
                     m_s.pose.position.x = x;
                     m_s.pose.position.y = y;
-                    m_s.pose.position.z = z;
+//                    m_s.pose.position.z = z;
+                    m_s.pose.position.z = (*it)->mean.z;
                     m_s.pose.orientation.x = normal(0);
                     m_s.pose.orientation.y = normal(1);
                     m_s.pose.orientation.z = normal(2);
@@ -846,7 +859,8 @@ public:
                     m_s.action = visualization_msgs::Marker::ADD;
                     m_s.pose.position.x = x;
                     m_s.pose.position.y = y;
-                    m_s.pose.position.z = z;
+//                    m_s.pose.position.z = z;
+                    m_s.pose.position.z = (*ilv).z;
                     m_s.scale.x = radius; //the same as radius
                     m_s.scale.y = radius;
                     m_s.scale.z = radius;
@@ -887,7 +901,8 @@ public:
                         marker.action = visualization_msgs::Marker::ADD;
                         marker.pose.position.x = x;
                         marker.pose.position.y = y;
-                        marker.pose.position.z = z;
+//                        marker.pose.position.z = z;
+                         marker.pose.position.z = (slItor->second)->mean.z;
                         marker.pose.orientation.x = normal(0);
                         marker.pose.orientation.y = normal(1);
                         marker.pose.orientation.z = normal(2);
@@ -1002,12 +1017,16 @@ public:
                          closed.push_back(*itN);
                      }else{
                          Vec3 q,itn;
-                         string s_xy = Q.front()->morton_xy;
-                         string s_z = Q.front()->morton_z;
-                         countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
-                         string n_xy = (*itN)->morton_xy;
-                         string n_z = (*itN)->morton_z;
-                         countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
+                         ///use the morton_xy and morton_z
+//                         string s_xy = Q.front()->morton_xy;
+//                         string s_z = Q.front()->morton_z;
+//                         countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
+//                         string n_xy = (*itN)->morton_xy;
+//                         string n_z = (*itN)->morton_z;
+//                         countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
+                         ///use the mean xyz
+                         q = Q.front()->mean;
+                         itn = (*itN)->mean;
 
                          if((*itN)->h > Q.front()->h + TravelCost(q,itn,goal.z)){
                              (*itN)->h = Q.front()->h + TravelCost(q,itn,goal.z);

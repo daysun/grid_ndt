@@ -24,6 +24,7 @@ public:
     //0.954722,-2.75786,-0.777927
     //1.3711,-2.77096,-0.865337
 
+    ///no-use
     //28_0047.bag
     //0.5 1
     //pos -6.75533,1.36108,-2.07499
@@ -34,19 +35,19 @@ public:
     //pos -6.75533,-1.36108,-1.07499
     //goal -75.02865,-18.6212,-1.06626
 
-    //fr2.pcd
-    //pos -8.75533,2.36108,0.07499
-    //goal 0.02865,0.6212,0.06626
+    //fr2.pcd 0.5 0.5
+    //pos -7.75533,2.36108,0.07499
+    //goal 15.02865,1.1212,0.56626
 
-    RobotSphere(const float rr, Vec3 pos= Vec3(-7.75533,2.36108,0.07499),
-                Vec3 goal=Vec3(0.02865,0.6212,0.06626)):r(rr),position(pos),goal(goal){
+    RobotSphere(const float rr, Vec3 pos= Vec3(-3.75533,3.36108,0.07499),
+                Vec3 goal=Vec3(15.02865,1.1212,0.56626)):r(rr),position(pos),goal(goal){
     }
     float getRobotR() {return r;}
     float getR(){return r/ROBOT_TAKEUP_CELL;} //get cell radius
     Vec3 getPosition(){return position;}
     Vec3 getGoal(){return goal;}
     float getReachableHeight(){
-        reachableHeight = r/1;
+        reachableHeight = r/2;
         return reachableHeight;}
     float getRough(){
         //should be changed

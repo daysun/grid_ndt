@@ -86,12 +86,16 @@ public:
                             else if(isContaninedOpen(*itS,open_queue,itTemp)){
                                 ///test
                                  Vec3 q,itn;
-                                string s_xy = temp->morton_xy;
-                                string s_z = temp->morton_z;
-                                map2D.countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
-                                string n_xy = (*itS)->morton_xy;
-                                string n_z = (*itS)->morton_z;
-                                map2D.countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
+                                 ///use the morton_xyz
+//                                string s_xy = temp->morton_xy;
+//                                string s_z = temp->morton_z;
+//                                map2D.countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
+//                                string n_xy = (*itS)->morton_xy;
+//                                string n_z = (*itS)->morton_z;
+//                                map2D.countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
+                                ///use the mean
+                                q = temp->mean;
+                                itn = (*itS)->mean;
 
                                 if((*itS)->g > temp->g + map2D.TravelCost(q,itn)){
                                     //remove and insert
@@ -110,17 +114,21 @@ public:
                                 //insert into OPEN
                                 ///test
                                  Vec3 q,itn;
-                                string s_xy = temp->morton_xy;
-                                string s_z = temp->morton_z;
-                                map2D.countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
-                                string n_xy = (*itS)->morton_xy;
-                                string n_z = (*itS)->morton_z;
-                                map2D.countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
+                                 ///use the morton_xyz
+//                                string s_xy = temp->morton_xy;
+//                                string s_z = temp->morton_z;
+//                                map2D.countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
+//                                string n_xy = (*itS)->morton_xy;
+//                                string n_z = (*itS)->morton_z;
+//                                map2D.countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
+                                 ///use the mean
+                                 q = temp->mean;
+                                 itn = (*itS)->mean;
 
-                                    (*itS)->g = temp->g + map2D.TravelCost(/*temp->mean,(*itS)->mean*/q,itn);
-                                    (*itS)->f = (*itS)->g + (*itS)->h;
-                                    (*itS)->father = temp;
-                                    open_queue.insert(make_pair( (*itS)->f ,*itS));
+                                 (*itS)->g = temp->g + map2D.TravelCost(/*temp->mean,(*itS)->mean*/q,itn);
+                                 (*itS)->f = (*itS)->g + (*itS)->h;
+                                 (*itS)->father = temp;
+                                 open_queue.insert(make_pair( (*itS)->f ,*itS));
                             }
                         itS++;
                     }
@@ -151,8 +159,8 @@ public:
         }
     }
 
-    void showRoute(TwoDmap & map2D,ros::Publisher marker_pub,float radius){
-        map2D.showSlopeList(marker_pub,global_path,radius,4);
+    void showRoute(TwoDmap & map2D,ros::Publisher marker_pub){
+        map2D.showSlopeList(marker_pub,global_path,4);
         cout<<"route show done\n";
     }
 

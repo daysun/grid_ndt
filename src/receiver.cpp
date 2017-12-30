@@ -36,7 +36,7 @@ ros::Publisher marker_pub,change_pub,markerArray_pub,marker_pub_bo,route_pub/*,d
 
 //ofstream outfile("/home/daysun/testPointsSys.txt", ofstream::app);
 
-void uniformDivision( const pcl::PointXYZ temp,const float r,bool change){
+void uniformDivision( const pcl::PointXYZ temp,bool change){
     string morton_xy,morton_z;
     Vec3 temp3(temp.x,temp.y,temp.z);
     map2D.transMortonXYZ(temp3,morton_xy,morton_z);
@@ -87,7 +87,7 @@ void uniformDivision( const pcl::PointXYZ temp,const float r,bool change){
 
 ///no-use
 ///maybe wrong
-void uniformDelDivision(const pcl::PointXYZ temp,const float r){
+void uniformDelDivision(const pcl::PointXYZ temp){
     string morton_xy,morton_z;
     Vec3 temp3(temp.x,temp.y,temp.z);
     map2D.transMortonXYZ(temp3,morton_xy,morton_z);
@@ -127,7 +127,7 @@ void uniformDelDivision(const pcl::PointXYZ temp,const float r){
 ///initial-one time
 void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
 {
-    cout<<"---------receive initial---------\n";
+    cout<<"---------receive initial---------\n";    
     double time_start = stopwatch();
     pcl::PCLPointCloud2 pcl_pc2;
     pcl_conversions::toPCL(*my_msg,pcl_pc2);
@@ -140,12 +140,12 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
     for (int i=1;i<temp_cloud->points.size();i++)
     {
 //        outfile<<temp_cloud->points[i].x<<","<<temp_cloud->points[i].y<<","<<temp_cloud->points[i].z<<endl;
-        uniformDivision(temp_cloud->points[i],robot.getR(),false);
+        uniformDivision(temp_cloud->points[i],false);
      }
      double time_end = stopwatch();
 //    outfile.close();
-    cout<<"division done. Time cost: "<<(time_end-time_start)<<" s\n";    
-    cout<<"morton size: "<<map2D.morton_list.size()<<endl;
+    cout<<"division done. Time cost: "<<(time_end-time_start)<<" s\n";
+    cout<<"grid length "<<map2D.getGridLen()<<", morton size: "<<map2D.morton_list.size()<<endl;
 
     double time_start1 = stopwatch();
     map2D.create2DMap();
@@ -163,7 +163,7 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
 
     AstarPlanar globalPlanr(robot.getPosition(),robot.getGoal());
     if(globalPlanr.findRoute(map2D,robot) && route_pub.getNumSubscribers())
-        globalPlanr.showRoute(map2D,route_pub,robot.getR());
+        globalPlanr.showRoute(map2D,route_pub);
 }
 
 ///change points-many times
@@ -179,7 +179,7 @@ void changeCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg){
      #pragma omp parallel for
      for (int i=0;i<temp_cloud->points.size();i++)
      {
-         uniformDivision(temp_cloud->points[i],robot.getR(),true);
+         uniformDivision(temp_cloud->points[i],true);
       }
      double time_end1 = stopwatch();
      cout<<"point size "<<temp_cloud->points.size()<<endl;
@@ -218,7 +218,7 @@ void delCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg){
      #pragma omp parallel for
      for (int i=0;i<temp_cloud->points.size();i++)
      {
-         uniformDelDivision(temp_cloud->points[i],robot.getR());
+         uniformDelDivision(temp_cloud->points[i]);
       }
      double time_end1 = stopwatch();
      cout<<"delete map- division done. Time cost: "<<(time_end1-time_start1)<<" s\n";

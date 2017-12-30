@@ -24,14 +24,14 @@ public:
     //1.3711,-2.77096,-0.865337
 
     //fr2.pcd 0.5 0.5
-    //pos -3.75533,3.36108,0.07499
+    //pos  -3.75533,1.36108,-0.1499
     //goal 15.02865,1.1212,0.40626
 
-    RobotSphere(const float rr, Vec3 pos= Vec3(-3.75533,3.36108,0.07499),
+    RobotSphere(const float rr, Vec3 pos= Vec3(2.55533,0.06108,0.1099),
                 Vec3 goal=Vec3(15.02865,1.1212,0.40626)):r(rr),position(pos),goal(goal){
     }
     float getRobotR() {return r;}
-    float getR(){return r/ROBOT_TAKEUP_CELL;} //get cell radius
+//    float getR(){return r/ROBOT_TAKEUP_CELL;} //get cell radius
     Vec3 getPosition(){return position;}
     Vec3 getGoal(){return goal;}
     float getReachableHeight(){

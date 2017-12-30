@@ -28,6 +28,19 @@ using namespace std;
 #define MINPOINTSIZE 3
 
 namespace daysun{
+struct CmpByKeyUD {
+  bool operator()(const string& k1, const string& k2) {
+      int num1 = strToInt( k1.substr(1,k1.length()-1));
+      string be1 = k1.substr(0,1);
+      int num2 = strToInt( k2.substr(1,k2.length()-1));
+      string be2 = k2.substr(0,1);
+      be1.compare("D") == 0? num1 *= -1: num1 = num1;
+      be2.compare("D") == 0? num2*=-1: num2= num2;
+      return num1<num2;
+  }
+};
+
+
 //new one - ABCD UD
 struct OcNode
 {
@@ -48,12 +61,14 @@ struct OcNode
     }
 
     bool isEmpty(){
-        if((N <= MINPOINTSIZE) && (covariance_matrix == Eigen::Matrix3f::Zero(3,3)) && (xyz_centroid == Eigen::Vector3f::Zero()))
+        if((N < MINPOINTSIZE) /*&& (covariance_matrix == Eigen::Matrix3f::Zero(3,3)) && (xyz_centroid == Eigen::Vector3f::Zero())*/)
             return true;// emtpty
         else return false; //full
     }
 
-    bool isSlope(multimap<string,OcNode *> map_xy,bool & up, bool & down){
+    ///more efficient one
+    /// with index in z
+    bool isSlope(map<string,OcNode *,CmpByKeyUD> & temp_cellZ,bool & up, bool & down){
         if(N<MINPOINTSIZE)
             return false;
         int currentZ = strToInt( z.substr(1,z.length()-1)); // this node
@@ -66,28 +81,78 @@ struct OcNode
         string zminus = stringAndFloat(belong,(currentZ-1));
 //        cout<<"add1,minus1:"<<zadd<<","<<zminus<<endl;
 
-        multimap<string,OcNode *>::iterator it = map_xy.find(morton);
+        map<string,OcNode *,CmpByKeyUD>::iterator tmp_it = temp_cellZ.find(z);//current node
+
         bool zup=false,zdown=false;
-        while(it != map_xy.end()){
-            if((it->first).compare(morton) != 0)
-                break;
-            if(zup == true && zdown == true)
-                break;
-            if((it->second)->z.compare(zadd) == 0){
-                zup = true; //exist
-//                if(!(it->second)->isEmpty())
-                    up = true;
+        if(tmp_it != temp_cellZ.end()){
+            if(tmp_it == temp_cellZ.begin()){
+                zdown= false;//not exist
+            }else{
+                tmp_it--;
+//                cout<<"-- "<<(tmp_it->second)->z<<endl;
+                if(zminus.compare((tmp_it->second)->z) == 0){
+                    zdown = true;
+//                    if(!(tmp_it->second)->isEmpty())
+                        down = true;
+                }
+                tmp_it++;
             }
-            if((it->second)->z.compare(zminus) == 0){
-                zdown = true; //exist
-//                if(!(it->second)->isEmpty())
-                    down = true;
-            }
-            it++;
+            tmp_it++;
+            if(tmp_it != temp_cellZ.end()){
+//                cout<<"++ "<<(tmp_it->second)->z<<endl;
+                if(zadd.compare((tmp_it->second)->z) == 0){
+                    zup = true;
+//                    if(!(tmp_it->second)->isEmpty())
+                        up = true;
+                }
+            }else
+                zup= false;//not exist
+        }else{
+            cout<<"isSlope wrong\n";
         }
         if(up==true && down == true)
             return false;
         else return true;
+    }
+
+    ///without index
+    /// for comparision
+    //now for change-no use
+    bool isSlope(multimap<string,OcNode *> & map_xy,bool & up, bool & down){
+            if(N<MINPOINTSIZE)
+                return false;
+            int currentZ = strToInt( z.substr(1,z.length()-1)); // this node
+            string belong = z.substr(0,1);
+            string zadd = stringAndFloat(belong,(currentZ +1));
+            if(currentZ == 1){
+                belong.compare("U") == 0? belong="D":belong="U";
+                currentZ +=1;
+            }
+            string zminus = stringAndFloat(belong,(currentZ-1));
+    //        cout<<"add1,minus1:"<<zadd<<","<<zminus<<endl;
+
+            multimap<string,OcNode *>::iterator it = map_xy.find(morton);
+            bool zup=false,zdown=false;
+            while(it != map_xy.end()){
+                if((it->first).compare(morton) != 0)
+                    break;
+                if(zup == true && zdown == true)
+                    break;
+                if(zadd.compare((it->second)->z) == 0){
+                    zup = true; //exist
+//                    if(!(it->second)->isEmpty())
+                        up = true;
+                }
+                if(zminus.compare((it->second)->z) == 0){
+                    zdown = true; //exist
+//                    if(!(it->second)->isEmpty())
+                        down = true;
+                }
+                it++;
+            }
+            if(up==true && down == true)
+                return false;
+            else return true;
     }
 
     void countRoughNormal(float & roughness,Vector3f & normalVector){
@@ -114,18 +179,6 @@ struct OcNode
         if(roughness == 0) //for visualization
             roughness = 0.01;
     }
-};
-
-struct CmpByKeyUD {
-  bool operator()(const string& k1, const string& k2) {
-      int num1 = strToInt( k1.substr(1,k1.length()-1));
-      string be1 = k1.substr(0,1);
-      int num2 = strToInt( k2.substr(1,k2.length()-1));
-      string be2 = k2.substr(0,1);
-      be1.compare("D") == 0? num1 *= -1: num1 = num1;
-      be2.compare("D") == 0? num2*=-1: num2= num2;
-      return num1<num2;
-  }
 };
 
 struct Slope{
@@ -340,6 +393,7 @@ class TwoDmap {
 
 public:    
     multimap<string,OcNode *>  map_xy/*,map_z*/; //ABCD+morton, UD+height---index
+//    multimap<string,OcNode *,CmpByKeyUD> map_z;
     TwoDmap(const float res):gridLen(res){}
     float getGridLen(){return gridLen;}
     void setCloudFirst(Vec3 p){
@@ -392,66 +446,143 @@ public:
          return list;
      }
 
-    //inital    
-    bool create2DMap(){
-        //get all the mortons-new cell, map.push_back
-        list<string>::iterator itor = morton_list.begin();
-            while(itor!=morton_list.end())
-            {
-                Cell * cell = new Cell(*itor);
-                map_cell.insert(map<string,Cell*>::value_type(cell->getMorton(), cell));
-                //for each morton
-                //---find the nodes, count the u,c, drop the points inside
-                //---determine which nodes has to be stored in the map
-                if(map_xy.count(*itor) == 0){
-                    cout<<"wrong\n";
-                    return false;
-                }else{
-                    multimap<string,daysun::OcNode *>::iterator  it = map_xy.find(*itor);
-                    while(it != map_xy.end()){
-                        if((it->first).compare(*itor) != 0)
-                            break;
-                        if((it->second)->lPoints.size() >= MINPOINTSIZE){
-                            pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZ>);
-                            std::list<pcl::PointXYZ>::iterator node_iter = (it->second)->lPoints.begin();
-                            while(node_iter != (it->second)->lPoints.end()){
-                                 point_cloud_ptr->points.push_back (*node_iter);
-                                 node_iter++;
-                            }
-                            //compute mean and covariance_matrix, then drop the pcl
-                            Eigen::Matrix3f covariance_matrix; //C
-                            Eigen::Vector4f xyz_centroid; //mean
-                            pcl::compute3DCentroid(*point_cloud_ptr,xyz_centroid);
-                            pcl::computeCovarianceMatrix(*point_cloud_ptr,xyz_centroid,covariance_matrix);
-                            (it->second)->xyz_centroid <<xyz_centroid(0),xyz_centroid(1),xyz_centroid(2);
-                            (it->second)->covariance_matrix = covariance_matrix;
-                            (it->second)->N += (it->second)->lPoints.size(); //record the num counting mean and C
-                            (it->second)->lPoints.clear();
-                            // if this node's up-down neighbors are free
-                            //--- store in the slope  (count roughness and Normal vector, (new slope, cell.push_back)
-                            // if not free, ignore them
-                            bool up= false, down = false;
-                            if((it->second)->isSlope(map_xy,up,down) ){
-                                Slope * slope = new Slope();
-                                cell->map_slope.insert(make_pair((it->second)->z,slope));                                
-                                slope->morton_xy = (it->second)->morton;
-                                slope->morton_z= (it->second)->z;
-                                slope->up = up,slope->down = down;
-                                slope->h = slope->g = slope->f = FLT_MAX;
-                                slope->mean.x = (it->second)->xyz_centroid(0);
-                                slope->mean.y = (it->second)->xyz_centroid(1);
-                                slope->mean.z = (it->second)->xyz_centroid(2);
-                                slope->father = NULL;//for path plan
-                                (it->second)->countRoughNormal(slope->rough,slope->normal);
-                            }
-                        }
-                        it++;
-                    }// else while end
-                }//else end
-                itor++;
-            }//while end
-        return true;
-    }
+    //inital
+     //with index
+//    bool create2DMap(){
+//        //get all the mortons-new cell, map.push_back
+//        list<string>::iterator itor = morton_list.begin();
+//            while(itor!=morton_list.end())
+//            {
+//                Cell * cell = new Cell(*itor);
+//                map_cell.insert(map<string,Cell*>::value_type(cell->getMorton(), cell));
+//                map<string,OcNode *,CmpByKeyUD> temp_cellZ;
+//                temp_cellZ.clear();
+//                //for each morton
+//                //---find the nodes, count the u,c, drop the points inside
+//                //---determine which nodes has to be stored in the map
+//                if(map_xy.count(*itor) == 0){
+//                    cout<<"wrong\n";
+//                    return false;
+//                }else{
+//                    multimap<string,daysun::OcNode *>::iterator  it = map_xy.find(*itor);
+//                    while(it != map_xy.end()){
+//                        if((it->first).compare(*itor) != 0)
+//                            break;
+//                        if((it->second)->lPoints.size() >= MINPOINTSIZE){
+//                            pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZ>);
+//                            std::list<pcl::PointXYZ>::iterator node_iter = (it->second)->lPoints.begin();
+//                            while(node_iter != (it->second)->lPoints.end()){
+//                                 point_cloud_ptr->points.push_back (*node_iter);
+//                                 node_iter++;
+//                            }
+//                            //compute mean and covariance_matrix, then drop the pcl
+//                            Eigen::Matrix3f covariance_matrix; //C
+//                            Eigen::Vector4f xyz_centroid; //mean
+//                            pcl::compute3DCentroid(*point_cloud_ptr,xyz_centroid);
+//                            pcl::computeCovarianceMatrix(*point_cloud_ptr,xyz_centroid,covariance_matrix);
+//                            (it->second)->xyz_centroid <<xyz_centroid(0),xyz_centroid(1),xyz_centroid(2);
+//                            (it->second)->covariance_matrix = covariance_matrix;
+//                            (it->second)->N += (it->second)->lPoints.size(); //record the num counting mean and C
+//                            (it->second)->lPoints.clear();
+//                            temp_cellZ.insert(make_pair((it->second)->z,it->second));
+//                        }
+//                        it++;
+//                    }// else while end
+//                }//else end
+
+//                //for each node in temp_cellZ, isSlope
+//                // if this node's up-down neighbors are free
+//                //--- store in the slope  (count roughness and Normal vector, (new slope, cell.push_back)
+//                // if not free, ignore them
+//                map<string,OcNode *,CmpByKeyUD>::iterator tmpIt = temp_cellZ.begin();
+//                while(tmpIt != temp_cellZ.end()){
+//                    bool up= false, down = false;
+
+////                    (tmpIt->second)->isSlope(temp_cellZ,up,down);
+////                    bool up2= false, down2 = false;
+////                    (tmpIt->second)->isSlope(map_xy,up2,down2);
+////                    if(up != up2 || down != down2)
+////                        cout<<"not the same\n";
+
+
+//                    if(/*(tmpIt->second)->isSlope(temp_cellZ,up,down)*/true ){
+//                        Slope * slope = new Slope();
+//                        cell->map_slope.insert(make_pair((tmpIt->second)->z,slope));
+//                        slope->morton_xy = (tmpIt->second)->morton;
+//                        slope->morton_z= (tmpIt->second)->z;
+//                        slope->up = up,slope->down = down;
+//                        slope->h = slope->g = slope->f = FLT_MAX;
+//                        slope->mean.x = (tmpIt->second)->xyz_centroid(0);
+//                        slope->mean.y = (tmpIt->second)->xyz_centroid(1);
+//                        slope->mean.z = (tmpIt->second)->xyz_centroid(2);
+//                        slope->father = NULL;//for path plan
+//                        (tmpIt->second)->countRoughNormal(slope->rough,slope->normal);
+//                    }
+//                    tmpIt++;
+//                }
+//                itor++;
+//            }//while end
+//        return true;
+//    }
+
+     ///all stored-no isSlope()
+     /// for comparision
+     bool create2DMap(){
+         //get all the mortons-new cell, map.push_back
+         list<string>::iterator itor = morton_list.begin();
+             while(itor!=morton_list.end())
+             {
+                 Cell * cell = new Cell(*itor);
+                 map_cell.insert(map<string,Cell*>::value_type(cell->getMorton(), cell));
+                 map<string,OcNode *,CmpByKeyUD> temp_cellZ;
+                 temp_cellZ.clear();
+                 if(map_xy.count(*itor) == 0){
+                     cout<<"wrong\n";
+                     return false;
+                 }else{
+                     multimap<string,daysun::OcNode *>::iterator  it = map_xy.find(*itor);
+                     while(it != map_xy.end()){
+                         if((it->first).compare(*itor) != 0)
+                             break;
+                         if((it->second)->lPoints.size() >= MINPOINTSIZE){
+                             pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZ>);
+                             std::list<pcl::PointXYZ>::iterator node_iter = (it->second)->lPoints.begin();
+                             while(node_iter != (it->second)->lPoints.end()){
+                                  point_cloud_ptr->points.push_back (*node_iter);
+                                  node_iter++;
+                             }
+                             //compute mean and covariance_matrix, then drop the pcl
+                             Eigen::Matrix3f covariance_matrix; //C
+                             Eigen::Vector4f xyz_centroid; //mean
+                             pcl::compute3DCentroid(*point_cloud_ptr,xyz_centroid);
+                             pcl::computeCovarianceMatrix(*point_cloud_ptr,xyz_centroid,covariance_matrix);
+                             (it->second)->xyz_centroid <<xyz_centroid(0),xyz_centroid(1),xyz_centroid(2);
+                             (it->second)->covariance_matrix = covariance_matrix;
+                             (it->second)->N += (it->second)->lPoints.size(); //record the num counting mean and C
+                             (it->second)->lPoints.clear();
+//                             temp_cellZ.insert(make_pair((it->second)->z,it->second));
+                             bool up= false, down = false;
+                             if((it->second)->isSlope(map_xy,up,down) /*true*/){
+                                 Slope * slope = new Slope();
+                                 cell->map_slope.insert(make_pair((it->second)->z,slope));
+                                 slope->morton_xy = (it->second)->morton;
+                                 slope->morton_z= (it->second)->z;
+                                 slope->up = up,slope->down = down;
+                                 slope->h = slope->g = slope->f = FLT_MAX;
+                                 slope->mean.x = (it->second)->xyz_centroid(0);
+                                 slope->mean.y = (it->second)->xyz_centroid(1);
+                                 slope->mean.z = (it->second)->xyz_centroid(2);
+                                 slope->father = NULL;//for path plan
+                                 (it->second)->countRoughNormal(slope->rough,slope->normal);
+                             }
+                         }
+                         it++;
+                     }// else while end
+                 }//else end
+                 itor++;
+             }//while end
+         return true;
+     }
 
     // change-add map
     ///no consideration for now, maybe wrong

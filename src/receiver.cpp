@@ -60,7 +60,7 @@ void uniformDivision( const pcl::PointXYZ temp,const float r,bool change){
         node->morton = morton_xy;
         node->z = morton_z;
         map2D.map_xy.insert(MAP_INT_MORTON_MULTI::value_type(morton_xy,node));
-//        map2D.map_z.insert(MAP_INT_MORTON_MULTI::value_type(morton_z,node));///useless?
+//        map2D.map_z.insert(make_pair(morton_z,node));
         map2D.morton_list.push_back(morton_xy);       
     }else{//find        
                     iterIntNode beg = map2D.map_xy.lower_bound(morton_xy);
@@ -80,11 +80,13 @@ void uniformDivision( const pcl::PointXYZ temp,const float r,bool change){
                          node->morton = morton_xy;
                          node->z = morton_z;
                          map2D.map_xy.insert(MAP_INT_MORTON_MULTI::value_type(morton_xy,node));
-//                         map2D.map_z.insert(MAP_INT_MORTON_MULTI::value_type(morton_z,node));
+//                         map2D.map_z.insert(make_pair(morton_z,node));
                      }
     }
 }
 
+///no-use
+///maybe wrong
 void uniformDelDivision(const pcl::PointXYZ temp,const float r){
     string morton_xy,morton_z;
     Vec3 temp3(temp.x,temp.y,temp.z);

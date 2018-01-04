@@ -103,6 +103,11 @@ add_executable(bag2colorpcd_
 target_link_libraries(bag2colorpcd_
 ${PCL_LIBRARIES}
  ${OpenCV_LIBS} )
+add_executable(slopeTest
+ src/test/explainSlope.cpp)
+target_link_libraries(slopeTest
+${PCL_LIBRARIES}
+ ${OpenCV_LIBS} )
 
 add_executable(pose2pcd_
  src/test/pose2pcd.cpp)

@@ -139,13 +139,14 @@ void showAllFiles( const char * dir_name ,pcl::PointCloud<pcl::PointXYZ>& cloud,
 int main(int argc,char *argv[])
 {
     pcl::PointCloud<pcl::PointXYZ> cloud;
-    cloud.width = 900;
-    cloud.height = 800;
+    //1-18
+    cloud.width = 1500;
+    cloud.height = 1600;
     cloud.is_dense = false;
     cloud.points.resize(cloud.width*cloud.height);
     int p=0;
     showAllFiles("/home/daysun/rros/src/data",cloud,p);
     cout<<cloud.points.size()<<endl;
-    pcl::io::savePCDFileASCII("freiburg2.pcd",cloud);
+    pcl::io::savePCDFileASCII("freiburg4_16.pcd",cloud);
     return 0;
 }

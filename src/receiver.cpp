@@ -152,9 +152,9 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
     double time_end1 = stopwatch();
     cout<<"2D Map creation done. Time cost: "<<(time_end1-time_start1)<<" s\n";
 
-    if(marker_pub.getNumSubscribers()){
+   if(marker_pub.getNumSubscribers()){
         map2D.showInital(marker_pub,robot,0);
-//        map2D.showBottom(marker_pub_bo,robot.getR());
+//        map2D.showBottom(marker_pub_bo);
         cout<<"initial show done\n";
     }    
 

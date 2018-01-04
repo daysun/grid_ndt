@@ -139,7 +139,7 @@ public:
                 cout<<"Sth wrong with the start slope, cant find it.\n";
              return false;
             }
-        }        else{
+        }else{
             cout<<"Sth wrong with the start slope, cant find it.\n";
              return false;
         }

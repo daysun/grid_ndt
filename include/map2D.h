@@ -919,9 +919,9 @@ public:
                         marker.pose.orientation.w = 1.0;
                         marker.scale.x = radius; //the same as radius
                         marker.scale.y = radius;
-                        marker.scale.z = 0.05/*rough*/;
+                        marker.scale.z = 0.001/*rough*/;
                         marker.color.a = 1.0;
-                        marker.color.r = 0.5;
+                        marker.color.r = 0.8;
                         if(color == 1){
                             //for testing change
                             marker.color.g =1;
@@ -943,7 +943,7 @@ public:
     }
 
     //for visualization-bottom grid
-    void showBottom(ros::Publisher marker_pub,float radius){
+    void showBottom(ros::Publisher marker_pub){
         ros::Rate r(50);
         uint32_t shape = visualization_msgs::Marker::CUBE; //SPHERE ARROW CYLINDER
         visualization_msgs::MarkerArray mArray;
@@ -956,7 +956,7 @@ public:
             float rough = 0.1;
             float x,y,z;
             string s_xy = cell->getMorton();
-            string s_z = "U1";
+            string s_z = "D3";
             countPositionXYZ(x,y,z,s_xy,s_z);
                     visualization_msgs::Marker m_s;
                     m_s.ns  = "bottom";
@@ -972,12 +972,12 @@ public:
                     m_s.pose.orientation.y = normal(1);
                     m_s.pose.orientation.z = normal(2);
                     m_s.pose.orientation.w = 1.0;
-                    m_s.scale.x = radius;
-                    m_s.scale.y = radius;
-                    m_s.scale.z = 0.2/*1.5* rough*/; //not using the rough, for visualization
+                    m_s.scale.x = gridLen;
+                    m_s.scale.y = gridLen;
+                    m_s.scale.z = 0.01/*1.5* rough*/; //not using the rough, for visualization
                         m_s.color.a = 1.0;
                         m_s.color.r = 0.5;
-                        m_s.color.g = 0.2;
+                        m_s.color.b = 0.5;
                     m_s.lifetime = ros::Duration();
                     mArray.markers.push_back(m_s);
             it++; i++;

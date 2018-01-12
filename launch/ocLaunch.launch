@@ -1,11 +1,12 @@
 <launch>
 <node
 pkg="grid_ndt"
-type="receivePcd"
-name="receivePcd"
-required="true"
+type="publishPcd"
+name="publishPcd"
 output="screen"
-/>
+>
+    <param name="filename1" type="string" value="freiburg2_16.pcd" />
+</node>
 
     <node
     name="rviz"

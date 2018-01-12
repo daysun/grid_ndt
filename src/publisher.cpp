@@ -41,8 +41,12 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
   ros::Publisher chatter_pub = n.advertise<sensor_msgs::PointCloud2>("publisher/cloud_fullSys", 1000);
    sensor_msgs::PointCloud2 output;
-   std::string cloud_path("/home/daysun/rros/src/grid_ndt/data/freiburg2.pcd");
-//   std::string cloud_path("/home/daysun/rros/src/grid_ndt/data/test.pcd");
+   string filename1;
+   ros::param::get("~filename1",filename1);
+//   cin>>filename1;
+   string sss = "/home/daysun/rros/src/grid_ndt/data/"+filename1;
+   std::string cloud_path(sss);
+//   std::string cloud_path("/home/daysun/rros/src/grid_ndt/data/louti.pcd");
    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
    if (!loadCloud(cloud_path,cloud))

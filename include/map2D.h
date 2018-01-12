@@ -87,12 +87,13 @@ struct OcNode
                     break;
                 if(zup == true && zdown == true)
                     break;
-                if(zadd.compare((it->second)->z) == 0){
+                if((zadd.compare((it->second)->z) == 0) && abs(((it->second)->xyz_centroid)(2) - xyz_centroid(2))>0.4){
                     zup = true; //exist
 //                    if(!(it->second)->isEmpty())
                         up = true;
                 }
-                if(zminus.compare((it->second)->z) == 0){
+                if((zminus.compare((it->second)->z) == 0) && abs(((it->second)->xyz_centroid)(2) - xyz_centroid(2))>0.4){
+                    //when height(mean.z) difference are bigger than 0.5, those two nodes are believed to belong to difference level
                     zdown = true; //exist
 //                    if(!(it->second)->isEmpty())
                         down = true;
@@ -280,9 +281,9 @@ class TwoDmap {
     bool CollisionCheck(Slope * slope,int n,RobotSphere & robot){
         float r =robot.getRobotR();//radius
         if(slope->up == true){
+            cout<<"up collide\n";
             return true; //collide
         }
-
         //find all the surrounding neighbors
         list<Slope *> nowSlope,addSlope,allSlope;
         nowSlope.clear();addSlope.clear();
@@ -310,12 +311,11 @@ class TwoDmap {
 
         list<Slope *>::iterator itSlope = allSlope.begin();
         while(itSlope != allSlope.end()){
-            if(((*itSlope)->mean.z <= slope->mean.z) && (*itSlope)->up == true){
+            if(((*itSlope)->mean.z < slope->mean.z) && (*itSlope)->up == true){
                 return true;//collide
             }
-            if(((*itSlope)->mean.z > slope->mean.z ) &&
-                    ((*itSlope)->mean.z - slope->mean.z >robot.getReachableHeight() ) &&
-                    ((*itSlope)->mean.z < slope->mean.z)+2*r){
+            if(((*itSlope)->mean.z > slope->mean.z ) && (((*itSlope)->mean.z < slope->mean.z)+2*r)&&
+                    ((*itSlope)->mean.z - slope->mean.z >robot.getReachableHeight())){
                 return true;//collide
             }
             itSlope++;
@@ -406,7 +406,7 @@ public:
          return list;
      }
 
-     bool create2DMap(){
+     bool create2DMap(string demand){
          //get all the mortons-new cell, map.push_back
          list<string>::iterator itor = morton_list.begin();
              while(itor!=morton_list.end())
@@ -441,18 +441,35 @@ public:
                              (it->second)->lPoints.clear();
 //                             temp_cellZ.insert(make_pair((it->second)->z,it->second));
                              bool up= false, down = false;
-                             if((it->second)->isSlope(map_xy,up,down) /*true*/){
-                                 Slope * slope = new Slope();
-                                 cell->map_slope.insert(make_pair((it->second)->z,slope));
-                                 slope->morton_xy = (it->second)->morton;
-                                 slope->morton_z= (it->second)->z;
-                                 slope->up = up,slope->down = down;
-                                 slope->h = slope->g = slope->f = FLT_MAX;
-                                 slope->mean.x = (it->second)->xyz_centroid(0);
-                                 slope->mean.y = (it->second)->xyz_centroid(1);
-                                 slope->mean.z = (it->second)->xyz_centroid(2);
-                                 slope->father = NULL;//for path plan
-                                 (it->second)->countRoughNormal(slope->rough,slope->normal);
+                             ///for test
+                             if(demand.compare("slope") == 0){
+                                 if((it->second)->isSlope(map_xy,up,down) ){
+                                     Slope * slope = new Slope();
+                                     cell->map_slope.insert(make_pair((it->second)->z,slope));
+                                     slope->morton_xy = (it->second)->morton;
+                                     slope->morton_z= (it->second)->z;
+                                     slope->up = up,slope->down = down;
+                                     slope->h = slope->g = slope->f = FLT_MAX;
+                                     slope->mean.x = (it->second)->xyz_centroid(0);
+                                     slope->mean.y = (it->second)->xyz_centroid(1);
+                                     slope->mean.z = (it->second)->xyz_centroid(2);
+                                     slope->father = NULL;//for path plan
+                                     (it->second)->countRoughNormal(slope->rough,slope->normal);
+                                 }
+                             }else if(demand.compare("true") == 0){
+                                 if( true){
+                                     Slope * slope = new Slope();
+                                     cell->map_slope.insert(make_pair((it->second)->z,slope));
+                                     slope->morton_xy = (it->second)->morton;
+                                     slope->morton_z= (it->second)->z;
+                                     slope->up = up,slope->down = down;
+                                     slope->h = slope->g = slope->f = FLT_MAX;
+                                     slope->mean.x = (it->second)->xyz_centroid(0);
+                                     slope->mean.y = (it->second)->xyz_centroid(1);
+                                     slope->mean.z = (it->second)->xyz_centroid(2);
+                                     slope->father = NULL;//for path plan
+                                     (it->second)->countRoughNormal(slope->rough,slope->normal);
+                                 }
                              }
                          }
                          it++;
@@ -822,9 +839,9 @@ public:
                         m_s.color.g = 0.2;
                     }else if(color == 4){ //for route
                         m_s.color.a = 1.0;
-                        m_s.color.b= 0.5;
-                        m_s.color.r = 0.5;
-                        m_s.color.g = 0.5;
+                        m_s.color.b= 0;
+                        m_s.color.r = 0.8;
+                        m_s.color.g = 0.8;
                         m_s.scale.z = gridLen;
                     }
                     m_s.lifetime = ros::Duration();

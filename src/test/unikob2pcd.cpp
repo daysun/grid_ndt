@@ -19,9 +19,9 @@
 #include <pcl/common/transforms.h>
 using namespace std;
 
+    #define PI 3.141592653
 //turn data+pose to pcd
 //and the data type should be selected
-//freiburg
 
 float strToFloat(string s){
     float num;
@@ -46,13 +46,26 @@ void SplitString(const string& s, vector<string>& v, const string& c)
         v.push_back(s.substr(pos1));
 }
 
+double angle_to_radian(double degree)
+{
+    double flag = (degree < 0)? -1.0 : 1.0;          //判断正负
+    if(degree<0)
+    {
+        degree = degree * (-1.0);
+    }
+    double angle = degree;
+    double result =flag * (angle * PI)/180;
+    return result;
+    //cout<<result<<endl;
+}
+
 Eigen::Quaterniond euler2Quaternion( const double roll,
                   const double pitch,
                   const double yaw )
 {
-    Eigen::AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitX());
-    Eigen::AngleAxisd pitchAngle(pitch, Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd yawAngle(yaw, Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd rollAngle(angle_to_radian(roll), Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pitchAngle(angle_to_radian(pitch), Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yawAngle(angle_to_radian(yaw), Eigen::Vector3d::UnitZ());
 
     Eigen::Quaterniond q = yawAngle * pitchAngle * rollAngle;
     return q;
@@ -66,19 +79,26 @@ void readTxt(string file,pcl::PointCloud<pcl::PointXYZ>& cloud,int & p)
 
     string s;
     pcl::PointCloud<pcl::PointXYZ> t_cloud;
-    t_cloud.width = 300;
-    t_cloud.height = 600;
+    t_cloud.width = 200;
+    t_cloud.height = 200;
     t_cloud.is_dense = false;
     t_cloud.points.resize(t_cloud.width*t_cloud.height);
 
     getline(infile,s);//1
+    vector<string> v1;
+    SplitString(s, v1," ");
+
     getline(infile,s);//2
     vector<string> v;
     SplitString(s, v," ");
-    Eigen::Quaterniond q= euler2Quaternion(strToFloat(v[3]),strToFloat(v[4]),strToFloat(v[5]));
+
+    Eigen::Quaterniond q= euler2Quaternion(strToFloat(v[0]),strToFloat(v[1]),strToFloat(v[2]));
 //    cout<<q.coeffs()<<endl;
+
     Eigen::Isometry3d t(q);
-    t(0,3) = strToFloat(v[0]); t(1,3) = strToFloat(v[1]); t(2,3) = strToFloat(v[2]);
+    t(0,3) = strToFloat(v1[0]); t(1,3) = strToFloat(v1[1]); t(2,3) = strToFloat(v1[2]);
+//    cout<<v1[0]<<","<<v1[1]<<","<<v1[2]<<endl;
+    cout<<t.matrix()<<endl;
     //pose-t
 
 
@@ -87,9 +107,9 @@ void readTxt(string file,pcl::PointCloud<pcl::PointXYZ>& cloud,int & p)
     {
         vector<string> v;
         SplitString(s, v," ");
-            t_cloud.points[p_size].x = strToFloat(v[3]);
-            t_cloud.points[p_size].y = strToFloat(v[4]);
-            t_cloud.points[p_size].z = strToFloat(v[5]);
+            t_cloud.points[p_size].x = strToFloat(v[0]);
+            t_cloud.points[p_size].y = strToFloat(v[1]);
+            t_cloud.points[p_size].z = strToFloat(v[2]);
             p_size++;
     }
     pcl::PointCloud<pcl::PointXYZ>::Ptr temp( new pcl::PointCloud<pcl::PointXYZ>() );
@@ -129,7 +149,7 @@ void showAllFiles( const char * dir_name ,pcl::PointCloud<pcl::PointXYZ>& cloud,
             strcmp( filename->d_name , "..") == 0    )
             continue;
         string fname = filename->d_name;
-        if( fname.substr(fname.size()-4,fname.size()).compare(".dat")==0){
+        if( fname.substr(fname.size()-3,fname.size()).compare(".3d")==0){
             cout<<fname<<endl;
             readTxt("/home/daysun/rros/src/data/"+fname, cloud,p);
         }
@@ -140,13 +160,14 @@ void showAllFiles( const char * dir_name ,pcl::PointCloud<pcl::PointXYZ>& cloud,
 int main(int argc,char *argv[])
 {
     pcl::PointCloud<pcl::PointXYZ> cloud;
-    cloud.width = 2300;
-    cloud.height = 1800;
+    //1-18
+    cloud.width = 600;
+    cloud.height = 800;
     cloud.is_dense = false;
     cloud.points.resize(cloud.width*cloud.height);
     int p=0;
     showAllFiles("/home/daysun/rros/src/data",cloud,p);
     cout<<cloud.points.size()<<endl;
-    pcl::io::savePCDFileASCII("freiburg_23tri.pcd",cloud);
+    pcl::io::savePCDFileASCII("loft12.pcd",cloud);
     return 0;
 }

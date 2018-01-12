@@ -33,6 +33,7 @@ RobotSphere robot(0.5); //radius--variable--according to the range of map
 //test-0.25, sys-0.125 vision-1.5 bag-1
 daysun::TwoDmap map2D(0.5);
 ros::Publisher marker_pub,change_pub,markerArray_pub,marker_pub_bo,route_pub/*,del_pub*/;
+string demand;
 
 //ofstream outfile("/home/daysun/testPointsSys.txt", ofstream::app);
 
@@ -148,7 +149,7 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
     cout<<"grid length "<<map2D.getGridLen()<<", morton size: "<<map2D.morton_list.size()<<endl;
 
     double time_start1 = stopwatch();
-    map2D.create2DMap();
+    map2D.create2DMap(demand);
     double time_end1 = stopwatch();
     cout<<"2D Map creation done. Time cost: "<<(time_end1-time_start1)<<" s\n";
 
@@ -241,6 +242,11 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "fullSys_listener");
   ros::start();
   ros::NodeHandle n;
+  if(argc==1)
+      demand = "slope";
+  else
+      demand = "true";//argv[1] //which way to create map,for test
+//  cout<<demand<<endl;
 
   marker_pub = n.advertise<visualization_msgs::MarkerArray>("initial_marker_array", 1000);
   markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("traversibility_marker_array", 1000);

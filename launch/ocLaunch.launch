@@ -5,7 +5,7 @@ type="publishPcd"
 name="publishPcd"
 output="screen"
 >
-    <param name="filename1" type="string" value="site125.pcd" />
+    <param name="filename1" type="string" value="motala52_4.pcd" />
 </node>
 
 </launch>

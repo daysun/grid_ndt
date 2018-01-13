@@ -32,11 +32,7 @@ public:
     //15.02865,-65.2212,1.3026
 
     //site125.pcd
-//    <param name="demand" type="string" value="slope" />
-//    <param name="pos" type="string" value="8.02865,32.5212,-0.40626" />
-//    <param name="goal" type="string" value="10.02865,40.2212,-0.126" />
-//    <param name="resolution" type="double" value="0.25" />
-//    <param name="slope_interval" type="double" value="0.1" />
+    //motala52_4.pcd
 
     RobotSphere(const float rr, Vec3 pos= Vec3(30.02865,1.2212,0.40626),
                 Vec3 goal=Vec3(63.02865,-37.2212,1.3026)):r(rr),position(pos),goal(goal){

@@ -19,7 +19,7 @@
 #include <pcl/common/transforms.h>
 using namespace std;
 
-    #define PI 3.141592653
+    #define PI 3.14159265358979323846
 //turn data+pose to pcd
 //and the data type should be selected
 
@@ -64,8 +64,8 @@ Eigen::Quaterniond euler2Quaternion( const double roll,
                   const double yaw )
 {
     Eigen::AngleAxisd rollAngle(angle_to_radian(roll), Eigen::Vector3d::UnitX());
-    Eigen::AngleAxisd pitchAngle(angle_to_radian(pitch), Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd yawAngle(angle_to_radian(yaw), Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd pitchAngle(angle_to_radian(pitch) , Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yawAngle(angle_to_radian(yaw) , Eigen::Vector3d::UnitZ());
 
     Eigen::Quaterniond q = yawAngle * pitchAngle * rollAngle;
     return q;
@@ -79,8 +79,8 @@ void readTxt(string file,pcl::PointCloud<pcl::PointXYZ>& cloud,int & p)
 
     string s;
     pcl::PointCloud<pcl::PointXYZ> t_cloud;
-    t_cloud.width = 200;
-    t_cloud.height = 200;
+    t_cloud.width = 1030;
+    t_cloud.height = 100;
     t_cloud.is_dense = false;
     t_cloud.points.resize(t_cloud.width*t_cloud.height);
 
@@ -161,13 +161,13 @@ int main(int argc,char *argv[])
 {
     pcl::PointCloud<pcl::PointXYZ> cloud;
     //1-18
-    cloud.width = 600;
-    cloud.height = 800;
+    cloud.width = 1030;
+    cloud.height = 900;
     cloud.is_dense = false;
     cloud.points.resize(cloud.width*cloud.height);
     int p=0;
     showAllFiles("/home/daysun/rros/src/data",cloud,p);
     cout<<cloud.points.size()<<endl;
-    pcl::io::savePCDFileASCII("loft12.pcd",cloud);
+    pcl::io::savePCDFileASCII("uni9.pcd",cloud);
     return 0;
 }

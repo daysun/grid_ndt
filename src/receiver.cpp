@@ -242,11 +242,19 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "fullSys_listener");
   ros::start();
   ros::NodeHandle n;
-  if(argc==1)
-      demand = "slope";
-  else
-      demand = "true";//argv[1] //which way to create map,for test
-//  cout<<demand<<endl;
+//  demand = argv[1];
+  ros::param::get("~demand",demand); //which way to create map,for test
+  string pos;
+  string goal;
+  float resolution,slope_interval;
+  ros::param::get("~pos",pos);
+  ros::param::get("~goal",goal);
+  ros::param::get("~resolution",resolution);
+  ros::param::get("~slope_interval",slope_interval);
+  robot.setPos(pos);
+  robot.setGoal(goal);
+  map2D.setLen(resolution);
+  map2D.setInterval(slope_interval);
 
   marker_pub = n.advertise<visualization_msgs::MarkerArray>("initial_marker_array", 1000);
   markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("traversibility_marker_array", 1000);

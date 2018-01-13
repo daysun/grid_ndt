@@ -49,16 +49,25 @@ void readTxt(string file,pcl::PointCloud<pcl::PointXYZ>& cloud,int & p)
     infile.open(file.data());
     assert(infile.is_open());
 
-    string s;        
-    getline(infile,s);//1
+    string s;
+    for(int j=0;j<2;j++){
+        getline(infile,s);//1
+    }
+
     while(getline(infile,s))
     {
+//        getline(infile,s);
         vector<string> v;
         SplitString(s, v," ");
-            cloud.points[p].x = strToFloat(v[3]);
-            cloud.points[p].y = strToFloat(v[4]);
-            cloud.points[p].z = strToFloat(v[5]);
+        if(strToFloat(v[0]) <2000 && strToFloat(v[0]) >100 &&
+              strToFloat(v[1]) >200 ){
+            cloud.points[p].x = strToFloat(v[0])/50;
+            cloud.points[p].y = (strToFloat(v[1]))/50;
+            cloud.points[p].z = strToFloat(v[2])/50;
             p++;
+        }
+        if(p>1250000-1)
+            break;
     }
     infile.close();
 }
@@ -89,7 +98,7 @@ void showAllFiles( const char * dir_name ,pcl::PointCloud<pcl::PointXYZ>& cloud,
             strcmp( filename->d_name , "..") == 0    )
             continue;
         string fname = filename->d_name;
-        if( fname.substr(fname.size()-4,fname.size()).compare(".dat")==0){
+        if( fname.substr(fname.size()-4,fname.size()).compare(".pts")==0){
             cout<<fname<<endl;
             readTxt("/home/daysun/rros/src/data/"+fname, cloud,p);
         }
@@ -100,13 +109,13 @@ void showAllFiles( const char * dir_name ,pcl::PointCloud<pcl::PointXYZ>& cloud,
 int main(int argc,char *argv[])
 {
     pcl::PointCloud<pcl::PointXYZ> cloud;
-    cloud.width = 900;
-    cloud.height = 800;
+    cloud.width = 2500;
+    cloud.height = 500;
     cloud.is_dense = false;
     cloud.points.resize(cloud.width*cloud.height);
     int p=0;
     showAllFiles("/home/daysun/rros/src/data",cloud,p);
     cout<<cloud.points.size()<<endl;
-    pcl::io::savePCDFileASCII("freiburg.pcd",cloud);
+    pcl::io::savePCDFileASCII("site125_new.pcd",cloud);
     return 0;
 }

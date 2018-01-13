@@ -5,12 +5,7 @@ type="publishPcd"
 name="publishPcd"
 output="screen"
 >
-    <param name="filename1" type="string" value="freiburg2_16.pcd" />
+    <param name="filename1" type="string" value="site125.pcd" />
 </node>
 
-    <node
-    name="rviz"
-    pkg="rviz"
-    type="rviz"
-    required="true" />
 </launch>

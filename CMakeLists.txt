@@ -119,6 +119,11 @@ add_executable(unikob2pcd_
 target_link_libraries(unikob2pcd_
 ${PCL_LIBRARIES}
  ${OpenCV_LIBS} )
+add_executable(a2pcd_
+ src/test/a2pcd.cpp)
+target_link_libraries(a2pcd_
+${PCL_LIBRARIES}
+ ${OpenCV_LIBS} )
 add_executable(readfile_
  src/test/readfile.cpp)
 

@@ -1,6 +1,7 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 #include "Vec3.h"
+#include "Stopwatch.h"
 #define ROBOT_TAKEUP_CELL 1   //suppose the robot take up 1*1 cells
 using namespace std;
 
@@ -30,6 +31,13 @@ public:
     //30.02865,1.2212,0.40626
     //15.02865,-65.2212,1.3026
 
+    //site125.pcd
+//    <param name="demand" type="string" value="slope" />
+//    <param name="pos" type="string" value="8.02865,32.5212,-0.40626" />
+//    <param name="goal" type="string" value="10.02865,40.2212,-0.126" />
+//    <param name="resolution" type="double" value="0.25" />
+//    <param name="slope_interval" type="double" value="0.1" />
+
     RobotSphere(const float rr, Vec3 pos= Vec3(30.02865,1.2212,0.40626),
                 Vec3 goal=Vec3(63.02865,-37.2212,1.3026)):r(rr),position(pos),goal(goal){
     }
@@ -46,6 +54,20 @@ public:
     }
     float getAngle(){
         return 60;
+    }
+    void setPos(string s){
+        vector<string> v;
+        SplitString(s, v,",");
+        position.x = strToFloat(v[0]);
+        position.y = strToFloat(v[1]);
+        position.z = strToFloat(v[2]);
+    }
+    void setGoal(string s){
+        vector<string> v;
+        SplitString(s, v,",");
+        goal.x = strToFloat(v[0]);
+        goal.y = strToFloat(v[1]);
+        goal.z = strToFloat(v[2]);
     }
 
     };

@@ -68,6 +68,29 @@ int binToDec(int k){
        return (int)i;
 }
 
+float strToFloat(string s){
+    float num;
+       stringstream ss(s);
+       ss >> num;
+       return num;
+}
+
+void SplitString(const string& s, vector<string>& v, const string& c)
+{
+    string::size_type pos1, pos2;
+    pos2 = s.find(c);
+    pos1 = 0;
+    while(string::npos != pos2)
+    {
+        v.push_back(s.substr(pos1, pos2-pos1));
+
+        pos1 = pos2 + c.size();
+        pos2 = s.find(c, pos1);
+    }
+    if(pos1 != s.length())
+        v.push_back(s.substr(pos1));
+}
+
 int binToDec(string str){
     unsigned int i = 0;
        const char *pch = str.c_str();

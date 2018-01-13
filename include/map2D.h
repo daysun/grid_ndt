@@ -7,7 +7,6 @@
 #include <algorithm>
 #include<list>
 #include "robot.h"
-#include"Stopwatch.h"
 #include<float.h>
 #include<map>
 #include <Eigen/Dense>
@@ -67,7 +66,7 @@ struct OcNode
     }   
 
     //now for change-no use
-    bool isSlope(multimap<string,OcNode *> & map_xy,bool & up, bool & down){
+    bool isSlope(multimap<string,OcNode *> & map_xy,bool & up, bool & down,float slope_interval){
             if(N<MINPOINTSIZE)
                 return false;
             int currentZ = strToInt( z.substr(1,z.length()-1)); // this node
@@ -87,12 +86,12 @@ struct OcNode
                     break;
                 if(zup == true && zdown == true)
                     break;
-                if((zadd.compare((it->second)->z) == 0) && abs(((it->second)->xyz_centroid)(2) - xyz_centroid(2))>0.4){
+                if((zadd.compare((it->second)->z) == 0) && abs(((it->second)->xyz_centroid)(2) - xyz_centroid(2))>slope_interval){
                     zup = true; //exist
 //                    if(!(it->second)->isEmpty())
                         up = true;
                 }
-                if((zminus.compare((it->second)->z) == 0) && abs(((it->second)->xyz_centroid)(2) - xyz_centroid(2))>0.4){
+                if((zminus.compare((it->second)->z) == 0) && abs(((it->second)->xyz_centroid)(2) - xyz_centroid(2))>slope_interval){
                     //when height(mean.z) difference are bigger than 0.5, those two nodes are believed to belong to difference level
                     zdown = true; //exist
 //                    if(!(it->second)->isEmpty())
@@ -157,6 +156,7 @@ public:
 class TwoDmap {
     float gridLen; //resolution      
     Vec3 cloudFirst; //initial--the first node--deem as (0,0,0)
+    float slope_interval;//interval of slope
 
     //adjust the ABCD and count out the left right forward and backward
     void countLRFB(string belongXY,int x,int y,string & leftMtn,string & rightMtn,string & forMtn,string &backMtn){
@@ -359,6 +359,13 @@ public:
     void setCloudFirst(Vec3 p){
         cloudFirst = p;
     }
+    void setLen(float len){
+        gridLen = len;
+    }
+    void setInterval(float interval){
+        slope_interval = interval;
+    }
+    float getInterval(){return slope_interval;}
 
     list<string> morton_list; //xy-morton-all
     list<string> changeMorton_list; //temp-change
@@ -443,7 +450,7 @@ public:
                              bool up= false, down = false;
                              ///for test
                              if(demand.compare("slope") == 0){
-                                 if((it->second)->isSlope(map_xy,up,down) ){
+                                 if((it->second)->isSlope(map_xy,up,down,slope_interval) ){
                                      Slope * slope = new Slope();
                                      cell->map_slope.insert(make_pair((it->second)->z,slope));
                                      slope->morton_xy = (it->second)->morton;
@@ -522,7 +529,7 @@ public:
                             (it->second)->N += (it->second)->lPoints.size();
                             (it->second)->lPoints.clear();
                             bool up= false, down = false;
-                            if((it->second)->isSlope(map_xy,up,down) ){
+                            if((it->second)->isSlope(map_xy,up,down,slope_interval) ){
                                 Slope * slope = new Slope();
                                 cell->map_slope.insert(make_pair((it->second)->z,slope));                              
                                 slope->morton_xy = (it->second)->morton;
@@ -564,7 +571,7 @@ public:
                             (it->second)->lPoints.clear();
                             //new Slope
                             bool up= false, down = false;
-                            if((it->second)->isSlope(map_xy,up,down)){
+                            if((it->second)->isSlope(map_xy,up,down,slope_interval)){
                                 Slope * slope = new Slope();
                                 cell->map_slope.insert(make_pair((it->second)->z,slope));                            
                                 slope->morton_xy = (it->second)->morton;
@@ -576,7 +583,7 @@ public:
                              }
                         }else{
                             bool up= false, down = false;
-                            bool beforeSlope = (it->second)->isSlope(map_xy,up,down); //before delete isSlope
+                            bool beforeSlope = (it->second)->isSlope(map_xy,up,down,slope_interval); //before delete isSlope
                              Eigen::Matrix3f C0 = (it->second)->covariance_matrix;
                              Eigen::Vector3f u0 = (it->second)->xyz_centroid;
                              int N =  (it->second)->N ;
@@ -601,7 +608,7 @@ public:
                                      cout<<"cant find slope by z, error\n";
                                      return false;
                                  }else{
-                                     if((it->second)->isSlope(map_xy,up,down)){
+                                     if((it->second)->isSlope(map_xy,up,down,slope_interval)){
                                          //change the old slope's u,C
                                          (cellItor->second)->up = up,(cellItor->second)->down = down;
                                          (it->second)->countRoughNormal((cellItor->second)->rough,(cellItor->second)->normal);
@@ -611,7 +618,7 @@ public:
                                      }
                                  }
                              }else{
-                                 if((it->second)->isSlope(map_xy,up,down)){
+                                 if((it->second)->isSlope(map_xy,up,down,slope_interval)){
                                      //new Slope
                                      Slope * slope = new Slope();
                                      cell->map_slope.insert(make_pair((it->second)->z,slope));
@@ -667,7 +674,7 @@ public:
                              node_iter++;
                         }
                         bool up= false, down = false;
-                        bool beforeSlope = (it->second)->isSlope(map_xy,up,down); //before delete isSlope
+                        bool beforeSlope = (it->second)->isSlope(map_xy,up,down,slope_interval); //before delete isSlope
                         Eigen::Matrix3f C0 = (it->second)->covariance_matrix;
                         Eigen::Vector3f u0 = (it->second)->xyz_centroid;
                         int N =  (it->second)->N ;
@@ -705,7 +712,7 @@ public:
                             if(beforeSlope){
                                 map<string,Slope *,CmpByKeyUD>::iterator cellItor = cell->map_slope.find((it->second)->z);
                                 if(cellItor != cell->map_slope.end()){
-                                    if((it->second)->isSlope(map_xy,up,down)){
+                                    if((it->second)->isSlope(map_xy,up,down,slope_interval)){
                                         //change the old slope's u,C
                                         (cellItor->second)->up = up,(cellItor->second)->down = down;
                                         (it->second)->countRoughNormal((cellItor->second)->rough,(cellItor->second)->normal);

@@ -27,13 +27,6 @@ public:
     //30.02865,1.2212,0.40626
     //63.02865,-37.2212,1.3026
 
-    //fr_23tri 0.5 0.5 --slope 0.4
-    //30.02865,1.2212,0.40626
-    //15.02865,-65.2212,1.3026
-
-    //site125.pcd
-    //motala52_4.pcd
-
     RobotSphere(const float rr, Vec3 pos= Vec3(30.02865,1.2212,0.40626),
                 Vec3 goal=Vec3(63.02865,-37.2212,1.3026)):r(rr),position(pos),goal(goal){
     }
@@ -46,10 +39,10 @@ public:
         return reachableHeight;}
     float getRough(){
         //should be changed
-        return 100000;
+        return 100;
     }
     float getAngle(){
-        return 60;
+        return 45;
     }
     void setPos(string s){
         vector<string> v;

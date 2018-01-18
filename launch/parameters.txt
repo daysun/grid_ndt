@@ -6,8 +6,22 @@
     <param name="slope_interval" type="double" value="0.1" />
 
 //motala52_4.pcd
-    <param name="demand" type="string" value="true" />
+    <param name="demand" type="string" value="slope" />
     <param name="pos" type="string" value="10.02865,20.5212,0.40626" />
     <param name="goal" type="string" value="15.02865,5.2212,0.406" />
     <param name="resolution" type="double" value="0.5" />
     <param name="slope_interval" type="double" value="0.1" />
+
+//fr_23tri.pcd-414
+    <param name="demand" type="string" value="slope" />
+    <param name="pos" type="string" value="30.02865,1.2212,0.40626" />
+    <param name="goal" type="string" value="15.02865,-65.2212,1.3026" />
+    <param name="resolution" type="double" value="0.5" />
+    <param name="slope_interval" type="double" value="0.4" />
+
+//fullSys.pcd
+    <param name="demand" type="string" value="slope" />
+    <param name="pos" type="string" value="1.2,-0.52,-0.777927" />
+    <param name="goal" type="string" value="-3.69998,0.128561,0.1197856" />
+    <param name="resolution" type="double" value="0.1" />
+    <param name="slope_interval" type="double" value="0.08" />

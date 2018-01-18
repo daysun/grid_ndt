@@ -334,7 +334,8 @@ class TwoDmap {
 //                        return true;//collide
 //                    else
 //                        return false;//no collide
-                    if((ss->second)->mean.z < slope->mean.z + 2*r )
+                    if(((ss->second)->mean.z < slope->mean.z + 2*r) &&
+                            ((ss->second)->mean.z - slope->mean.z >robot.getReachableHeight()))
                         return true;//collide
                     else
                         return false;//no collide
@@ -794,8 +795,7 @@ public:
     }
 
     //for visualiation
-    ///xy using node's morton_xy while z using node's mean.z
-    ///the rest is the same with this one
+    //using mean
     void showSlopeList(ros::Publisher marker_pub,list<Slope *> & closed,int color =0){
         ros::Rate r(50);
         uint32_t shape = visualization_msgs::Marker::CUBE; //SPHERE ARROW CYLINDER
@@ -818,8 +818,8 @@ public:
                     m_s.id = i;
                     m_s.type = shape;
                     m_s.action = visualization_msgs::Marker::ADD;
-                    m_s.pose.position.x = x;
-                    m_s.pose.position.y = y;
+                    m_s.pose.position.x = (*it)->mean.x;
+                    m_s.pose.position.y = (*it)->mean.y;
 //                    m_s.pose.position.z = z;
                     m_s.pose.position.z = (*it)->mean.z;
                     m_s.pose.orientation.x = normal(0);
@@ -865,6 +865,7 @@ public:
     }
 
     //for visualization-initial
+    //use mean
     void showInital(ros::Publisher marker_pub,RobotSphere & robot,int color =0){ //0-,1-change
         float radius=gridLen;
         ros::Rate r(50);
@@ -891,8 +892,8 @@ public:
                     m_s.id = j;
                     m_s.type = shape;
                     m_s.action = visualization_msgs::Marker::ADD;
-                    m_s.pose.position.x = x;
-                    m_s.pose.position.y = y;
+                    m_s.pose.position.x = (*ilv).x;
+                    m_s.pose.position.y = (*ilv).y;
 //                    m_s.pose.position.z = z;
                     m_s.pose.position.z = (*ilv).z;
                     m_s.scale.x = radius; //the same as radius
@@ -933,8 +934,8 @@ public:
                         marker.id = i; //same namespace and id will overwrite the old one
                         marker.type = shape;
                         marker.action = visualization_msgs::Marker::ADD;
-                        marker.pose.position.x = x;
-                        marker.pose.position.y = y;
+                        marker.pose.position.x = (slItor->second)->mean.x;
+                        marker.pose.position.y = (slItor->second)->mean.y;
 //                        marker.pose.position.z = z;
                          marker.pose.position.z = (slItor->second)->mean.z;
                         marker.pose.orientation.x = normal(0);
@@ -943,7 +944,7 @@ public:
                         marker.pose.orientation.w = 1.0;
                         marker.scale.x = radius; //the same as radius
                         marker.scale.y = radius;
-                        marker.scale.z = 0.001/*rough*/;
+                        marker.scale.z = 0.005/*rough*/;
                         marker.color.a = 1.0;
                         marker.color.r = 0.8;
                         if(color == 1){

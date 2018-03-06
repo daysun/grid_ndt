@@ -42,7 +42,7 @@ public:
         return 100;
     }
     float getAngle(){
-        return 45;
+        return 30;
     }
     void setPos(string s){
         vector<string> v;

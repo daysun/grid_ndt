@@ -1,9 +1,16 @@
 //site125.pcd
+    //left
     <param name="demand" type="string" value="slope" />
     <param name="pos" type="string" value="8.02865,32.5212,-0.40626" />
     <param name="goal" type="string" value="10.02865,40.2212,-0.126" />
     <param name="resolution" type="double" value="0.25" />
     <param name="slope_interval" type="double" value="0.1" />
+    //right
+    <param name="demand" type="string" value="true" />
+    <param name="pos" type="string" value="10.02865,4.5212,0.040626" />
+    <param name="goal" type="string" value="12.02865,12.2212,0.126" />
+    <param name="resolution" type="double" value="0.5" />
+    <param name="slope_interval" type="double" value="0.3" />
 
 //motala52_4.pcd
     <param name="demand" type="string" value="slope" />
@@ -22,6 +29,13 @@
 //fullSys.pcd
     <param name="demand" type="string" value="slope" />
     <param name="pos" type="string" value="1.2,-0.52,-0.777927" />
-    <param name="goal" type="string" value="-3.69998,0.128561,0.1197856" />
+    <param name="goal" type="string" value="-3.69998,-1.128561,0.1197856" />
     <param name="resolution" type="double" value="0.1" />
     <param name="slope_interval" type="double" value="0.08" />
+
+//freiburg2_16.pcd
+    <param name="demand" type="string" value="slope" />
+    <param name="pos" type="string" value="30.02865,1.2212,0.40626" />
+    <param name="goal" type="string" value="63.02865,-37.2212,1.3026" />
+    <param name="resolution" type="double" value="0.5" />
+    <param name="slope_interval" type="double" value="0.4" />

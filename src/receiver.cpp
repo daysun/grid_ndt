@@ -32,7 +32,7 @@ typedef multimap<string,daysun::OcNode *>::iterator iterIntNode;
 RobotSphere robot(0.5); //radius--variable--according to the range of map
 //test-0.25, sys-0.125 vision-1.5 bag-1
 daysun::TwoDmap map2D(0.5);
-ros::Publisher marker_pub,change_pub,markerArray_pub,marker_pub_bo,route_pub/*,del_pub*/;
+ros::Publisher marker_pub,change_pub,markerArray_pub,markerArray_pub2,marker_pub_bo,route_pub/*,del_pub*/;
 string demand;
 
 //ofstream outfile("/home/daysun/testPointsSys.txt", ofstream::app);
@@ -145,13 +145,13 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
      }
      double time_end = stopwatch();
 //    outfile.close();
-    cout<<"division done. Time cost: "<<(time_end-time_start)<<" s\n";
+    cout<<"division time: "<<(time_end-time_start)<<" s\n";
     cout<<"grid length "<<map2D.getGridLen()<<", morton size: "<<map2D.morton_list.size()<<endl;
 
     double time_start1 = stopwatch();
     map2D.create2DMap(demand);
     double time_end1 = stopwatch();
-    cout<<"2D Map creation done. Time cost: "<<(time_end1-time_start1)<<" s\n";
+    cout<<"calculate time: "<<(time_end1-time_start1)<<" s\n";
 
    if(marker_pub.getNumSubscribers()){
         map2D.showInital(marker_pub,robot,0);
@@ -160,10 +160,10 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
     }    
 
     Vec3 goal(robot.getGoal());
-    map2D.computeCost(goal,robot,markerArray_pub); //compute the cost map
+    map2D.computeCost(goal,robot,markerArray_pub,markerArray_pub2,demand); //compute the cost map
 
     AstarPlanar globalPlanr(robot.getPosition(),robot.getGoal());
-    if(globalPlanr.findRoute(map2D,robot) && route_pub.getNumSubscribers())
+    if(globalPlanr.findRoute(map2D,robot,demand) && route_pub.getNumSubscribers())
         globalPlanr.showRoute(map2D,route_pub);
 }
 
@@ -258,6 +258,7 @@ int main(int argc, char **argv)
 
   marker_pub = n.advertise<visualization_msgs::MarkerArray>("initial_marker_array", 1000);
   markerArray_pub = n.advertise<visualization_msgs::MarkerArray>("traversibility_marker_array", 1000);
+  markerArray_pub2 = n.advertise<visualization_msgs::MarkerArray>("tra_check_marker_array", 1000);
   change_pub = n.advertise<visualization_msgs::MarkerArray>("change_marker_array", 1000);
 //  del_pub = n.advertise<visualization_msgs::MarkerArray>("del_marker_array", 1000);
   marker_pub_bo = n.advertise<visualization_msgs::MarkerArray>("bottom_marker_array", 1000);

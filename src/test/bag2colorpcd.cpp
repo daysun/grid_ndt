@@ -33,6 +33,7 @@ pcl::PointCloud<pcl::PointXYZRGB>cloud;
 
 void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
 {
+    cout<<"receive file\n";
     pcl::PCLPointCloud2 pcl_pc2;
     pcl_conversions::toPCL(*my_msg,pcl_pc2);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -47,7 +48,7 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
         cloud.points[num].g = temp_cloud->points[i].g;
         cloud.points[num].b = temp_cloud->points[i].b;
     }
-//    cout<<"out\n";
+    cout<<"out\n";
 }
 
 int main(int argc, char **argv)
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
   ros::start();
   ros::NodeHandle n;
 
-  cloud.width = 4000;
+  cloud.width = 400;
   cloud.height = 4000;
   cloud.is_dense = false;
   cloud.points.resize(cloud.width*cloud.height);

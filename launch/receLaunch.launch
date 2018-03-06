@@ -5,11 +5,11 @@ type="receivePcd"
 name="receivePcd"
 output="screen"
 >
-<param name="demand" type="string" value="slope" />
-<param name="pos" type="string" value="1.2,-0.52,-0.777927" />
-<param name="goal" type="string" value="-3.69998,-1.128561,0.1197856" />
-<param name="resolution" type="double" value="0.1" />
-<param name="slope_interval" type="double" value="0.08" />
+<param name="demand" type="string" value="true" />
+<param name="pos" type="string" value="30.02865,1.2212,0.40626" />
+<param name="goal" type="string" value="63.02865,-37.2212,1.3026" />
+<param name="resolution" type="double" value="0.5" />
+<param name="slope_interval" type="double" value="0.4" />
 </node>
 
 

@@ -38,6 +38,7 @@ pcl::PointCloud<pcl::PointXYZ>cloud;
 
 void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
 {
+    cout<<"receive\n";
     pcl::PCLPointCloud2 pcl_pc2;
     pcl_conversions::toPCL(*my_msg,pcl_pc2);
     pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -49,7 +50,7 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
         cloud.points[num].y = temp_cloud->points[i].y;
         cloud.points[num].z = temp_cloud->points[i].z;
     }
-//    cout<<"out\n";
+    cout<<"out\n";
 }
 
 int main(int argc, char **argv)
@@ -58,16 +59,16 @@ int main(int argc, char **argv)
   ros::start();
   ros::NodeHandle n;
 
-  cloud.width = 1000;
-  cloud.height = 2000;
+  cloud.width = 400;
+  cloud.height = 4000;
   cloud.is_dense = false;
   cloud.points.resize(cloud.width*cloud.height);
 
 //  ros::Subscriber sub = n.subscribe("/kitti/velo/pointcloud", 1000, chatterCallback);
-  ros::Subscriber sub = n.subscribe("/camera/rgb/points", 1000, chatterCallback);
+  ros::Subscriber sub = n.subscribe("/camera/depth/points", 1000, chatterCallback);
   ros::spin();
   ros::shutdown();
-  pcl::io::savePCDFileASCII("rgbd_dataset_freiburg1_floor-2hz-with-pointclouds.pcd",cloud);
+  pcl::io::savePCDFileASCII("rgbd_pointcloud.pcd",cloud);
   cout<<"write file\n";
   return 0;
 }

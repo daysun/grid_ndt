@@ -39,7 +39,6 @@ struct CmpByKeyUD {
   }
 };
 
-
 //new one - ABCD UD
 struct OcNode
 {
@@ -140,6 +139,30 @@ struct Slope{
      string morton_xy,morton_z;
      bool up, down; //false-empty true-full
      Slope * father;
+     bool countUp(multimap<string,OcNode *> & map_xy,float slope_interval){//for comparision with 3D
+         int currentZ = strToInt( morton_z.substr(1,morton_z.length()-1)); // this slope
+         string belong = morton_z.substr(0,1);
+         string zadd = stringAndFloat(belong,(currentZ +1));
+         if(currentZ == 1){
+             belong.compare("U") == 0? belong="D":belong="U";
+             currentZ +=1;
+         }
+
+         multimap<string,OcNode *>::iterator it = map_xy.find(morton_xy);
+         bool zup=false;
+         while(it != map_xy.end()){
+             if((it->first).compare(morton_xy) != 0)
+                 break;
+             if(zup == true)
+                 break;
+             if((zadd.compare((it->second)->z) == 0) && abs(((it->second)->xyz_centroid)(2) - mean.z)>slope_interval){
+                 zup = true; //exist
+             }
+             it++;
+         }
+         up = zup;
+         return zup;
+     }
 };
 
 
@@ -235,37 +258,66 @@ class TwoDmap {
         return num1;
     }
 
-    void countReachable(string leftMtn, list<Slope *> & list,RobotSphere & robot,
-                        string morton_z,Vector3f normal,Vec3 mean){
+    //for common use/collisionCheck use
+    void countReachable(string leftMtn, list<Slope *> & listm,RobotSphere & robot,
+                        string morton_z,Vector3f normal,Vec3 mean,float comand){
         //find the corresponding cell-mortonxy
         map<string,Cell *>::iterator mit=  map_cell.find(leftMtn);
         if(mit != map_cell.end()){
             map<string,Slope *,CmpByKeyUD>::iterator sit =   (mit->second)->map_slope.begin();
             while(sit != (mit->second)->map_slope.end()){
                 //judge if it's traversible -morton_z normal rough
-                  if(sit->second->up != true)
+                if(comand == 3){
+                    sit->second->up = sit->second->countUp(map_xy,getInterval());
+                }
+                  if(sit->second->up != true){
                       if((sit->second)->rough <= robot.getRough())
                           if(countAngle((sit->second)->normal,normal) <= robot.getAngle())
                               if(abs((sit->second)->mean.z - mean.z )<= robot.getReachableHeight())//use mean to compute
-                                  list.push_back(sit->second);
-//                              if((abs(mtnZToNum((sit->second)->morton_z) - mtnZToNum(morton_z)) <= ceil((float)robot.getReachableHeight()/gridLen)))
-//                                  list.push_back(sit->second);
+                                  listm.push_back(sit->second);
+                  }
                   sit++;
              }
          }
-    }   
+    }
 
-    //find all the surrounding neighbors
-//    void checkSlope(list<Slope *>& AllSlope,Slope * slope,RobotSphere & robot){
-//        list<Slope *> neiSlope = AccessibleNeighbors(slope,robot);
-//        list<Slope *>::iterator itN = neiSlope.begin();
-//        while(itN != neiSlope.end()){
-//            if(!isContainedQ(*itN,AllSlope)){
-//                AllSlope.push_back(*itN);
-//            }
-//            itN++;
-//        }
-//    }
+    void countReachable(string leftMtn, list<Slope *> & listm,RobotSphere & robot,
+                        string morton_z,Vector3f normal,Vec3 mean,list<Slope *> & checkList){
+        //find the corresponding cell-mortonxy
+        map<string,Cell *>::iterator mit=  map_cell.find(leftMtn);
+        if(mit != map_cell.end()){
+            map<string,Slope *,CmpByKeyUD>::iterator sit =   (mit->second)->map_slope.begin();
+            while(sit != (mit->second)->map_slope.end()){
+                //judge if it's traversible -morton_z normal rough
+                  if(sit->second->up != true){
+                      checkList.push_back(sit->second);
+                      if((sit->second)->rough <= robot.getRough())
+                          if(countAngle((sit->second)->normal,normal) <= robot.getAngle())
+                              if(abs((sit->second)->mean.z - mean.z )<= robot.getReachableHeight())//use mean to compute
+                                  listm.push_back(sit->second);
+                  }
+                  sit++;
+             }
+         }
+    }
+
+    //for comparision with 3D
+    void countReachable3D(string leftMtn, list<Slope *> & listm,RobotSphere & robot,
+                        string morton_z,Vector3f normal,Vec3 mean,list<Slope *> & checkList){
+        //find the corresponding cell-mortonxy
+        map<string,Cell *>::iterator mit=  map_cell.find(leftMtn);
+        if(mit != map_cell.end()){
+            map<string,Slope *,CmpByKeyUD>::iterator sit =   (mit->second)->map_slope.begin();
+            while(sit != (mit->second)->map_slope.end()){
+                checkList.push_back(sit->second);//3d has no up/down info
+                    if((sit->second)->rough <= robot.getRough())
+                        if(countAngle((sit->second)->normal,normal) <= robot.getAngle())
+                            if(abs((sit->second)->mean.z - mean.z )<= robot.getReachableHeight())//use mean to compute
+                                listm.push_back(sit->second);
+                sit++;
+             }
+         }
+    }
 
     bool isContainedQ(Slope * s,  list<Slope *> & Q){
         list<Slope *>::iterator it = Q.begin();
@@ -292,7 +344,7 @@ class TwoDmap {
         while(n>0){
             list<Slope *>::iterator itSlope = nowSlope.begin();
             while(itSlope != nowSlope.end()){
-                list<Slope *> neiSlope = AccessibleNeighbors(*itSlope,robot);
+                list<Slope *> neiSlope = AccessibleNeighbors(*itSlope,robot,2.5);
                 list<Slope *>::iterator itN = neiSlope.begin();
                 while(itN != neiSlope.end()){
                     if(!isContainedQ(*itN,allSlope)){
@@ -334,6 +386,70 @@ class TwoDmap {
 //                        return true;//collide
 //                    else
 //                        return false;//no collide
+                    if(((ss->second)->mean.z < slope->mean.z + 2*r) &&
+                            ((ss->second)->mean.z - slope->mean.z >robot.getReachableHeight()))
+                        return true;//collide
+                    else
+                        return false;//no collide
+
+                }
+                return false;//no collide
+        }
+    }
+
+    //for comparision with 3D
+    bool CollisionCheck3D(Slope * slope,int n,RobotSphere & robot){
+        float r =robot.getRobotR();//radius
+        //if(slope->up == true){
+        if(slope->countUp(map_xy,getInterval()) == true){
+            cout<<"up collide\n";
+            return true; //collide
+        }
+        //find all the surrounding neighbors
+        list<Slope *> nowSlope,addSlope,allSlope;
+        nowSlope.clear();addSlope.clear();
+        allSlope.push_back(slope);
+        nowSlope.push_back(slope);
+        while(n>0){
+            list<Slope *>::iterator itSlope = nowSlope.begin();
+            while(itSlope != nowSlope.end()){
+                list<Slope *> neiSlope = AccessibleNeighbors(*itSlope,robot,3);//3d
+                list<Slope *>::iterator itN = neiSlope.begin();
+                while(itN != neiSlope.end()){
+                    if(!isContainedQ(*itN,allSlope)){
+                        addSlope.push_back(*itN);
+                        allSlope.push_back(*itN);
+                    }
+                    itN++;
+                }
+                itSlope++;
+            }
+            n--;
+            nowSlope.clear();
+            nowSlope = addSlope;
+            addSlope.clear();
+        }
+
+        list<Slope *>::iterator itSlope = allSlope.begin();
+        while(itSlope != allSlope.end()){
+            if(((*itSlope)->mean.z < slope->mean.z) && (*itSlope)->countUp(map_xy,getInterval()) == true){
+                return true;//collide
+            }
+            if(((*itSlope)->mean.z > slope->mean.z ) && (((*itSlope)->mean.z < slope->mean.z)+2*r)&&
+                    ((*itSlope)->mean.z - slope->mean.z >robot.getReachableHeight())){
+                return true;//collide
+            }
+            itSlope++;
+        }
+
+        string xy = slope->morton_xy;
+        string z= slope->morton_z;
+        map<string,Cell *>::iterator it = map_cell.find(xy);
+        if(it != map_cell.end()){
+                map<string,Slope *,CmpByKeyUD>::iterator ss = (it->second)->map_slope.find(z); //Ascending order
+                if(ss == (it->second)->map_slope.end()) cout<<"collide wrong\n";
+                ss++; //the next one
+                if(ss != (it->second)->map_slope.end()){
                     if(((ss->second)->mean.z < slope->mean.z + 2*r) &&
                             ((ss->second)->mean.z - slope->mean.z >robot.getReachableHeight()))
                         return true;//collide
@@ -393,8 +509,29 @@ public:
         return cost;
   }
 
+  //for common use /collisionCheck use
+  list<Slope *>  AccessibleNeighbors(Slope * slope,RobotSphere & robot,float comand){
+//         cout<<"access slope: "<<slope->morton_xy<<","<<slope->morton_z<<endl;
+      list<Slope *> list;
+      string morton_xy = slope->morton_xy;
+      string morton_z= slope->morton_z;
+      Vector3f normal = slope->normal;
+      Vec3 mean = slope->mean;
+      int x,y;
+      string belongXY = morton_xy.substr(0,1);
+      int morton = strToInt( morton_xy.substr(1,morton_xy.length()-1));
+      mortonToXY(x,y,morton);
+      string leftMtn,rightMtn,forMtn,backMtn;
+      countLRFB(belongXY,x,y,leftMtn,rightMtn,forMtn,backMtn); //adjust belong
+      countReachable(leftMtn,list,robot,morton_z,normal,mean,comand);
+      countReachable(rightMtn,list,robot,morton_z,normal,mean,comand);
+      countReachable(forMtn,list,robot,morton_z,normal,mean,comand);
+      countReachable(backMtn,list,robot,morton_z,normal,mean,comand);
+      return list;
+  }
+
     //find the reachable surrounding slopes
-     list<Slope *>  AccessibleNeighbors(Slope * slope,RobotSphere & robot){
+     list<Slope *>  AccessibleNeighbors(Slope * slope,RobotSphere & robot,list<Slope *> & checkList){
 //         cout<<"access slope: "<<slope->morton_xy<<","<<slope->morton_z<<endl;
          list<Slope *> list;
          string morton_xy = slope->morton_xy;
@@ -407,12 +544,33 @@ public:
          mortonToXY(x,y,morton);
          string leftMtn,rightMtn,forMtn,backMtn;
          countLRFB(belongXY,x,y,leftMtn,rightMtn,forMtn,backMtn); //adjust belong
-         countReachable(leftMtn,list,robot,morton_z,normal,mean);
-         countReachable(rightMtn,list,robot,morton_z,normal,mean);
-         countReachable(forMtn,list,robot,morton_z,normal,mean);
-         countReachable(backMtn,list,robot,morton_z,normal,mean);
+         countReachable(leftMtn,list,robot,morton_z,normal,mean,checkList);
+         countReachable(rightMtn,list,robot,morton_z,normal,mean,checkList);
+         countReachable(forMtn,list,robot,morton_z,normal,mean,checkList);
+         countReachable(backMtn,list,robot,morton_z,normal,mean,checkList);
          return list;
      }
+
+     //for comparision with 3D
+      list<Slope *>  AccessibleNeighbors3D(Slope * slope,RobotSphere & robot,list<Slope *> & checkList){
+ //         cout<<"access slope: "<<slope->morton_xy<<","<<slope->morton_z<<endl;
+          list<Slope *> list;
+          string morton_xy = slope->morton_xy;
+          string morton_z= slope->morton_z;
+          Vector3f normal = slope->normal;
+          Vec3 mean = slope->mean;
+          int x,y;
+          string belongXY = morton_xy.substr(0,1);
+          int morton = strToInt( morton_xy.substr(1,morton_xy.length()-1));
+          mortonToXY(x,y,morton);
+          string leftMtn,rightMtn,forMtn,backMtn;
+          countLRFB(belongXY,x,y,leftMtn,rightMtn,forMtn,backMtn); //adjust belong
+          countReachable3D(leftMtn,list,robot,morton_z,normal,mean,checkList);
+          countReachable3D(rightMtn,list,robot,morton_z,normal,mean,checkList);
+          countReachable3D(forMtn,list,robot,morton_z,normal,mean,checkList);
+          countReachable3D(backMtn,list,robot,morton_z,normal,mean,checkList);
+          return list;
+      }
 
      bool create2DMap(string demand){
          //get all the mortons-new cell, map.push_back
@@ -466,11 +624,13 @@ public:
                                  }
                              }else if(demand.compare("true") == 0){
                                  if( true){
+                                     //3D without up/down information
+//                                     (it->second)->isSlope(map_xy,up,down,slope_interval);
                                      Slope * slope = new Slope();
                                      cell->map_slope.insert(make_pair((it->second)->z,slope));
                                      slope->morton_xy = (it->second)->morton;
                                      slope->morton_z= (it->second)->z;
-                                     slope->up = up,slope->down = down;
+                                     slope->up = up,slope->down = down;//no use in 3D
                                      slope->h = slope->g = slope->f = FLT_MAX;
                                      slope->mean.x = (it->second)->xyz_centroid(0);
                                      slope->mean.y = (it->second)->xyz_centroid(1);
@@ -835,10 +995,12 @@ public:
                         m_s.color.r = 0.5;
                         m_s.scale.z = gridLen/2;
                     }
-                    else if(color == 1){ //not traversible
+                    else if(color == 1){ //not traversible--check
                         m_s.color.a = 1.0;
                         m_s.color.b = 0.5;
                         m_s.color.r = 1;
+                        m_s.color.g = 1;
+                        m_s.scale.z = gridLen/2;
                     }
                     else if(color == 2){ //for bottom_cell
                         m_s.color.a = 1.0;
@@ -849,6 +1011,7 @@ public:
                         m_s.color.b= 0;
                         m_s.color.r = 0.8;
                         m_s.color.g = 0.8;
+                        m_s.scale.x = gridLen;
                         m_s.scale.z = gridLen;
                     }
                     m_s.lifetime = ros::Duration();
@@ -942,10 +1105,10 @@ public:
                         marker.pose.orientation.y = normal(1);
                         marker.pose.orientation.z = normal(2);
                         marker.pose.orientation.w = 1.0;
-                        marker.scale.x = radius; //the same as radius
-                        marker.scale.y = radius;
-                        marker.scale.z = 0.005/*rough*/;
-                        marker.color.a = 1.0;
+                        marker.scale.x = radius-0.01; //the same as radius
+                        marker.scale.y = radius-0.01;
+                        marker.scale.z = 0.01/*rough*/;
+                        marker.color.a = 0.8;
                         marker.color.r = 0.8;
                         if(color == 1){
                             //for testing change
@@ -1017,11 +1180,12 @@ public:
     }
 
     //compute cost map
-    void computeCost(Vec3 goal,RobotSphere & robot,ros::Publisher marker_pub){
+    void computeCost(Vec3 goal,RobotSphere & robot,ros::Publisher marker_pub,ros::Publisher marker_pub2,string demand){
         double time_start2 = stopwatch();
          list<Slope *> Q; //list of cell to be computed
          list<Slope *> closed;//no checking again
          list<Slope *> traversability; //can travel
+         list<Slope *> checkList;
          string morton_xy,morton_z;
          transMortonXYZ(goal,morton_xy,morton_z);
          map<string,Cell *>::iterator it = map_cell.find(morton_xy);
@@ -1041,53 +1205,91 @@ public:
 //         cout<<"n "<<n<<endl;
 
          //compute the surrounding morton code
-         while(Q.size() != 0){
-             if(!CollisionCheck(Q.front(),n,robot )){
-                 //no collision
-                 list<Slope *> neiSlope = AccessibleNeighbors(Q.front(),robot);
-                 list<Slope *>::iterator itN = neiSlope.begin();
-                 while(itN != neiSlope.end()){
-                     if((*itN)->up == true){
-                         (*itN)->h = FLT_MAX;
-                         closed.push_back(*itN);
-                     }else{
-                         Vec3 q,itn;
-                         ///use the morton_xy and morton_z
-                         {
-//                         string s_xy = Q.front()->morton_xy;
-//                         string s_z = Q.front()->morton_z;
-//                         countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
-//                         string n_xy = (*itN)->morton_xy;
-//                         string n_z = (*itN)->morton_z;
-//                         countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
-                         }
-                         ///use the mean xyz
-                         q = Q.front()->mean;
-                         itn = (*itN)->mean;
+         if(demand.compare("slope") == 0){
+             while(Q.size() != 0){
+                 if(!CollisionCheck(Q.front(),n,robot )){
+                     //no collision
+                     list<Slope *> neiSlope = AccessibleNeighbors(Q.front(),robot,checkList);
+                     list<Slope *>::iterator itN = neiSlope.begin();
+                     while(itN != neiSlope.end()){
+                         if((*itN)->up == true){
+                             (*itN)->h = FLT_MAX;
+                             closed.push_back(*itN);
+                         }else{
+                             Vec3 q,itn;
+                             ///use the morton_xy and morton_z
+                             {
+    //                         string s_xy = Q.front()->morton_xy;
+    //                         string s_z = Q.front()->morton_z;
+    //                         countPositionXYZ(q.x,q.y,q.z,s_xy,s_z);
+    //                         string n_xy = (*itN)->morton_xy;
+    //                         string n_z = (*itN)->morton_z;
+    //                         countPositionXYZ(itn.x,itn.y,itn.z,n_xy,n_z);
+                             }
+                             ///use the mean xyz
+                             q = Q.front()->mean;
+                             itn = (*itN)->mean;
 
-                         if((*itN)->h > Q.front()->h + TravelCost(q,itn,goal.z)){
-                             (*itN)->h = Q.front()->h + TravelCost(q,itn,goal.z);
-                             if(!isContainedQ(*itN,Q) && !isContainedQ(*itN,closed) && !isContainedQ(*itN,traversability)){
-                                 Q.push_back(*itN);
+                             if((*itN)->h > Q.front()->h + TravelCost(q,itn,goal.z)){
+                                 (*itN)->h = Q.front()->h + TravelCost(q,itn,goal.z);
+                                 if(!isContainedQ(*itN,Q) && !isContainedQ(*itN,closed) && !isContainedQ(*itN,traversability)){
+                                     Q.push_back(*itN);
+                                 }
                              }
                          }
+                         itN++;
                      }
-                     itN++;
+                     traversability.push_back(Q.front());
+                 }else{
+                     Q.front()->h = FLT_MAX; //collide
+                     closed.push_back(Q.front());
                  }
-                 traversability.push_back(Q.front());
-             }else{
-                 Q.front()->h = FLT_MAX; //collide
-                 closed.push_back(Q.front());
+                 Q.pop_front();
              }
-             Q.pop_front();
+         }else if(demand.compare("true") == 0){//for comaprision with 3D
+             while(Q.size() != 0){
+                 if(!CollisionCheck3D(Q.front(),n,robot )){
+                     //no collision
+                     list<Slope *> neiSlope = AccessibleNeighbors3D(Q.front(),robot,checkList);
+                     list<Slope *>::iterator itN = neiSlope.begin();
+                     while(itN != neiSlope.end()){
+//                         if((*itN)->up == true){ ///----------------change
+                         if((*itN)->countUp(map_xy,getInterval()) == true){
+                             (*itN)->h = FLT_MAX;
+                             closed.push_back(*itN);
+                         }else{
+                             Vec3 q,itn;
+                             q = Q.front()->mean;
+                             itn = (*itN)->mean;
+
+                             if((*itN)->h > Q.front()->h + TravelCost(q,itn,goal.z)){
+                                 (*itN)->h = Q.front()->h + TravelCost(q,itn,goal.z);
+                                 if(!isContainedQ(*itN,Q) && !isContainedQ(*itN,closed) && !isContainedQ(*itN,traversability)){
+                                     Q.push_back(*itN);
+                                 }
+                             }
+                         }
+                         itN++;
+                     }
+                     traversability.push_back(Q.front());
+                 }else{
+                     Q.front()->h = FLT_MAX; //collide
+                     closed.push_back(Q.front());
+                 }
+                 Q.pop_front();
+             }
          }
          double time_end2 = stopwatch();
-         cout<<"Compute costmap done. Time cost: "<<(time_end2-time_start2)<<" s\n";
-         cout<<"traversability size "<<traversability.size()<<endl;
-         if(marker_pub.getNumSubscribers()){
+         cout<<"traversability time: "<<(time_end2-time_start2)<<" s\n";
+         cout<<"traversability slopes "<<traversability.size()<<endl;
+         cout<<"check slopes "<<checkList.size()<<endl;
+         if(marker_pub.getNumSubscribers() ){
              showSlopeList(marker_pub,traversability,0);
-//             showSlopeList(marker_pub,closed,1); //for test
              cout<<"costmap show done\n";
+         }
+         if(marker_pub2.getNumSubscribers() ){
+             showSlopeList(marker_pub2,checkList,1);
+             cout<<"check slope/node show done\n";
          }
     }
 

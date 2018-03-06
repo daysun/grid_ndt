@@ -46,7 +46,7 @@ public:
     AstarPlanar(Vec3 start,Vec3 goal):start(start),goal(goal){
     }
 
-    bool findRoute(TwoDmap & map2D,RobotSphere & robot){
+    bool findRoute(TwoDmap & map2D,RobotSphere & robot,string demand){
         double time_start3 = stopwatch();
         //find where the start is
         string morton_xy,morton_z,g_xy,g_z;
@@ -74,7 +74,11 @@ public:
                         break;
                     }
                     //find neighbors
-                    list<Slope *> neiSlope = map2D.AccessibleNeighbors(temp,robot);
+                    float tmp=2.5;
+                    if(demand.compare("true") == 0){
+                        tmp=3;
+                    }
+                    list<Slope *> neiSlope = map2D.AccessibleNeighbors(temp,robot,tmp);
                     list<Slope *>::iterator itS = neiSlope.begin();
 //                    //for each traversible neighbors
                     while(itS != neiSlope.end()){
@@ -151,7 +155,7 @@ public:
                 i = global_path.front();
             }
             double time_end3 = stopwatch();
-            cout<<"Global planr done. Time cost: "<<(time_end3-time_start3)<<" s\n";
+            cout<<"Global planr done. A*: "<<(time_end3-time_start3)<<" s\n";
             return true;
         }else{
             cout<<"not find the road\n";

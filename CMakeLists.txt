@@ -8,32 +8,23 @@ cmake_modules
 visualization_msgs
   roscpp
   sensor_msgs
+  interactive_markers
   nodelet
   pcl_ros
 )
 find_package(octomap REQUIRED)
 FIND_PACKAGE( PCL REQUIRED COMPONENTS common io )
-find_package(OpenCV 3.0 QUIET)
-if(NOT OpenCV_FOUND)
-   find_package(OpenCV 2.4.3 QUIET)
-   if(NOT OpenCV_FOUND)
-      message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
-   endif()
-endif()
+set(OpenCV_DIR "/usr/local/opencv2/share/OpenCV")
+find_package(OpenCV REQUIRED)
 
-FIND_PACKAGE(OpenGL)
-FIND_PACKAGE(Qt4)
-IF (OpenGL-NOTFOUND OR Qt4-NOTFOUND)
-        MESSAGE ( "OpenGL and QT4 are required for octovis but could not be found.")
-ELSE()
-        FIND_PACKAGE(QGLViewer)
-        IF(QGLViewer_FOUND)
-          SET( BUILD_VIEWER 1)
-        ELSE()
-          MESSAGE ( "\n")
-        MESSAGE ( "libQGLViewer could not be found or generated.")
-        ENDIF()
-ENDIF()
+#if(NOT OpenCV_FOUND)
+#   find_package(OpenCV 2.4.13.3 QUIET)
+#   if(NOT OpenCV_FOUND)
+#      message(FATAL_ERROR "OpenCV > 2.4.13.3 not found.")
+#   endif()
+#endif()
+
+
 
 #openmp
 FIND_PACKAGE( OpenMP REQUIRED)
@@ -88,26 +79,6 @@ ${PCL_LIBRARIES}
  ${OpenCV_LIBS} )
 
 #test
-add_executable(txt2pcd_
- src/test/txt2pcd.cpp)
-target_link_libraries(txt2pcd_
-${PCL_LIBRARIES}
- ${OpenCV_LIBS} )
-add_executable(bag2pcd_
- src/test/bag2pcd.cpp)
-target_link_libraries(bag2pcd_
-${PCL_LIBRARIES}
- ${OpenCV_LIBS} )
-add_executable(bag2colorpcd_
- src/test/bag2colorpcd.cpp)
-target_link_libraries(bag2colorpcd_
-${PCL_LIBRARIES}
- ${OpenCV_LIBS} )
-add_executable(slopeTest
- src/test/explainSlope.cpp)
-target_link_libraries(slopeTest
-${PCL_LIBRARIES}
- ${OpenCV_LIBS} )
 
 add_executable(pose2pcd_
  src/test/pose2pcd.cpp)
@@ -119,11 +90,14 @@ add_executable(unikob2pcd_
 target_link_libraries(unikob2pcd_
 ${PCL_LIBRARIES}
  ${OpenCV_LIBS} )
-add_executable(testSth_
- src/test/testSth.cpp)
-target_link_libraries(testSth_
-${PCL_LIBRARIES}
- ${OpenCV_LIBS} )
+
+#test interactive_marker_tutorials
+#add_executable(interactive_marker
+# src/test/interactive_marker.cpp)
+#target_link_libraries(interactive_marker
+ #   ${PCL_LIBRARIES}
+  #   ${OpenCV_LIBS}
+   #  )
 
 #kitti to pcd
 #ADD_EXECUTABLE(kitti2pcd src/test/kitti2pcd.cpp)

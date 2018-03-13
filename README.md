@@ -17,6 +17,6 @@ You should put this project under your ROS work space, such as <i>your_ros_path/
 2、 <i>roslaunch grid_ndt ocLaunch.launch</i><br/>
 &ensp;&ensp;The experimental data (*.pcd) can be attained in https://pan.baidu.com/s/1V3h0yNY5YEQUvvzE06LdWQ,
 and the corresponding parameters can be attained in /launch/parameters.txt.<br/>
-For visualization, the rviz should subscribe the top "initial_marker_array", "traversibility_marker_array" and "route_marker_array".
+&ensp;&ensp;For visualization, the rviz should subscribe the top "initial_marker_array", "traversibility_marker_array" and "route_marker_array".
 
 

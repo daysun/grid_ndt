@@ -302,13 +302,13 @@ namespace octomath {
       return sqrt(dist_x*dist_x + dist_y*dist_y);
     }
 
-    Vector3& rotate_IP (double roll, double pitch, double yaw);
+//    Vector3& rotate_IP (double roll, double pitch, double yaw);
 
     //    void read (unsigned char * src, unsigned int size);
-    std::istream& read(std::istream &s);
-    std::ostream& write(std::ostream &s) const;
-    std::istream& readBinary(std::istream &s);
-    std::ostream& writeBinary(std::ostream &s) const;
+//    std::istream& read(std::istream &s);
+//    std::ostream& write(std::ostream &s) const;
+//    std::istream& readBinary(std::istream &s);
+//    std::ostream& writeBinary(std::ostream &s) const;
 
 
   protected:
@@ -318,7 +318,9 @@ namespace octomath {
 
 
   //! user friendly output in format (x y z)
-  std::ostream& operator<<(std::ostream& out, octomath::Vector3 const& v);
+  std::ostream& operator<<(std::ostream& out, octomath::Vector3 const& v) {
+    return out << '(' << v.x() << ' ' << v.y() << ' ' << v.z() << ')';
+  }
 
 }
 

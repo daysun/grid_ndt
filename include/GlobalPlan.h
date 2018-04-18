@@ -16,11 +16,11 @@ class AstarPlanar{
     multimap<float,Slope *,MyCompare> open_queue;
     list<Slope *> closed_list;
     list<Slope *> global_path;
-    Vec3 start,goal;
+    Vector3 start,goal;
     bool isContainedClosed(Slope * s,list<Slope *> & closed_list){
         list<Slope *>::iterator it = closed_list.begin();
         while(it != closed_list.end()){
-            if((*it)->morton_xy.compare(s->morton_xy)==0 && (*it)->morton_z.compare(s->morton_z)==0 )
+            if((*it)->morton_xy.compare(s->morton_xy)==0 && ((*it)->morton_z == s->morton_z) )
                 return true;
             it++;
         }
@@ -33,7 +33,7 @@ class AstarPlanar{
         while(it != open_queue.end()){
             if((it->first) != s->f)
                 break;
-            if((it->second)->morton_xy.compare(s->morton_xy)==0 && (it->second)->morton_z.compare(s->morton_z)==0){
+            if((it->second)->morton_xy.compare(s->morton_xy)==0 && ((it->second)->morton_z==s->morton_z) ){
                 iTemp = it;
                 return true;
             }
@@ -43,19 +43,21 @@ class AstarPlanar{
     }
 
 public:
-    AstarPlanar(Vec3 start,Vec3 goal):start(start),goal(goal){
+    AstarPlanar(Vector3 start,Vector3 goal):start(start),goal(goal){
     }
 
     bool findRoute(TwoDmap & map2D,RobotSphere & robot,string demand){
         double time_start3 = stopwatch();
         //find where the start is
-        string morton_xy,morton_z,g_xy,g_z;
+        string morton_xy,g_xy;
+        int g_z;
+        int morton_z;
         bool route  = false;
         map2D.transMortonXYZ(start,morton_xy,morton_z);
         map2D.transMortonXYZ(goal,g_xy,g_z);
         map<string,Cell *>::iterator it = map2D.map_cell.find(morton_xy);
         if(it != map2D.map_cell.end()){
-            map<string,Slope *,CmpByKeyUD>::iterator ss = (it->second)->map_slope.find(morton_z);
+            map<int,Slope *,CmpByKeyUD>::iterator ss = (it->second)->map_slope.find(morton_z);
             if(ss != (it->second)->map_slope.end()){
                 ss->second->g = 0; //start
                 ss->second->f = ss->second->g + ss->second->h;
@@ -66,7 +68,7 @@ public:
                     Slope * temp = it_Open->second; //min f
                     //if find the goal
                     if(temp->morton_xy.compare(g_xy)==0  &&
-                            temp->morton_z.compare(g_z)==0){
+                            (temp->morton_z == g_z)){
                         route = true;
 //                        cout<<"find end "<<temp->morton_xy<<","<<temp->morton_z<<endl;
                         global_path.push_front(temp);
@@ -76,7 +78,7 @@ public:
                     //find neighbors
                     float tmp=2.5;
                     if(demand.compare("true") == 0){
-                        tmp=3;
+                        tmp=4;
                     }
                     list<Slope *> neiSlope = map2D.AccessibleNeighbors(temp,robot,tmp);
                     list<Slope *>::iterator itS = neiSlope.begin();
@@ -89,7 +91,7 @@ public:
                             }
                             else if(isContaninedOpen(*itS,open_queue,itTemp)){
                                 ///test
-                                 Vec3 q,itn;
+                                 Vector3 q,itn;
                                  ///use the morton_xyz
 //                                string s_xy = temp->morton_xy;
 //                                string s_z = temp->morton_z;
@@ -117,7 +119,7 @@ public:
                                 //update g and f, and father node
                                 //insert into OPEN
                                 ///test
-                                 Vec3 q,itn;
+                                 Vector3 q,itn;
                                  ///use the morton_xyz
 //                                string s_xy = temp->morton_xy;
 //                                string s_z = temp->morton_z;

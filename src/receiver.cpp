@@ -26,6 +26,7 @@
 using namespace Eigen;
 using namespace std;
 using namespace daysun;
+using namespace octomath;
 typedef multimap<string,daysun::OcNode *>  MAP_INT_MORTON_MULTI;
 typedef multimap<string,daysun::OcNode *>::iterator iterIntNode;
 
@@ -38,8 +39,10 @@ string demand;
 //ofstream outfile("/home/daysun/testPointsSys.txt", ofstream::app);
 
 void uniformDivision( const pcl::PointXYZ temp,bool change){
-    string morton_xy,morton_z;
-    Vec3 temp3(temp.x,temp.y,temp.z);
+    string morton_xy;
+            int morton_z;
+//    Vec3 temp3(temp.x,temp.y,temp.z);
+    Vector3 temp3(temp.x,temp.y,temp.z);
     map2D.transMortonXYZ(temp3,morton_xy,morton_z);
     //for change-record which xy have been changed
     if(change){
@@ -57,97 +60,103 @@ void uniformDivision( const pcl::PointXYZ temp,bool change){
     if(map2D.map_xy.count(morton_xy) == 0){ //not found
         //add new node
         daysun::OcNode * node = new daysun::OcNode();
-        node->lPoints.push_back(temp);
+//        node->lPoints.push_back(temp);
+//        node->pCloud_ptr->points.push_back (temp);
+        node->test_cloud.points.push_back(temp);
         node->morton = morton_xy;
         node->z = morton_z;
         map2D.map_xy.insert(MAP_INT_MORTON_MULTI::value_type(morton_xy,node));
 //        map2D.map_z.insert(make_pair(morton_z,node));
         map2D.morton_list.push_back(morton_xy);       
     }else{//find        
-                    iterIntNode beg = map2D.map_xy.lower_bound(morton_xy);
-                     iterIntNode end = map2D.map_xy.upper_bound(morton_xy);
-                     bool found = false;
-                     while(beg != end){
-                         if( (beg->second)->z.compare(morton_z) == 0 ){//string z
-                             (beg->second)->lPoints.push_back(temp);
-                             found = true;
-                             break;
-                         }
-                         ++beg;
-                     }
-                     if(!found){
-                         daysun::OcNode * node = new daysun::OcNode();
-                         node->lPoints.push_back(temp);
-                         node->morton = morton_xy;
-                         node->z = morton_z;
-                         map2D.map_xy.insert(MAP_INT_MORTON_MULTI::value_type(morton_xy,node));
-//                         map2D.map_z.insert(make_pair(morton_z,node));
-                     }
+        iterIntNode beg = map2D.map_xy.lower_bound(morton_xy);
+          iterIntNode end = map2D.map_xy.upper_bound(morton_xy);
+          bool found = false;
+          while(beg != end){
+              if( (beg->second)->z == morton_z ){//string z
+//                  (beg->second)->lPoints.push_back(temp);
+                  (beg->second)->test_cloud.points.push_back(temp);
+                  found = true;
+                  break;
+              }
+              ++beg;
+          }
+          if(!found){
+              daysun::OcNode * node = new daysun::OcNode();
+//              node->lPoints.push_back(temp);
+              node->test_cloud.points.push_back (temp);
+              node->morton = morton_xy;
+              node->z = morton_z;
+              map2D.map_xy.insert(MAP_INT_MORTON_MULTI::value_type(morton_xy,node));
+          }
     }
 }
 
+/*
 ///no-use
 ///maybe wrong
-void uniformDelDivision(const pcl::PointXYZ temp){
-    string morton_xy,morton_z;
-    Vec3 temp3(temp.x,temp.y,temp.z);
-    map2D.transMortonXYZ(temp3,morton_xy,morton_z);
+//void uniformDelDivision(const pcl::PointXYZ temp){
+//    string morton_xy,morton_z;
+//    Vec3 temp3(temp.x,temp.y,temp.z);
+////    map2D.transMortonXYZ(temp3,morton_xy,morton_z);
 
-    if(map2D.map_xy.count(morton_xy) == 0){ //not found
-//       cout<<"delete data not in the map\n";
-        //because of the data, just ignore them
-    }else{//find
-                    iterIntNode beg = map2D.map_xy.lower_bound(morton_xy);
-                     iterIntNode end = map2D.map_xy.upper_bound(morton_xy);
-                     bool found = false;
-                     while(beg != end){
-                         if( (beg->second)->z.compare(morton_z) == 0 ){//string z
-                             (beg->second)->lDelPoints.push_back(temp);
-                             found = true;
-                             break;
-                         }
-                         ++beg;
-                     }
-                     if(!found){
-                         cout<<"delete-data error\n";
-                         return;
-                     }
+//    if(map2D.map_xy.count(morton_xy) == 0){ //not found
+////       cout<<"delete data not in the map\n";
+//        //because of the data, just ignore them
+//    }else{//find
+//                    iterIntNode beg = map2D.map_xy.lower_bound(morton_xy);
+//                     iterIntNode end = map2D.map_xy.upper_bound(morton_xy);
+//                     bool found = false;
+//                     while(beg != end){
+//                         if( (beg->second)->z.compare(morton_z) == 0 ){//string z
+//                             (beg->second)->lDelPoints.push_back(temp);
+//                             found = true;
+//                             break;
+//                         }
+//                         ++beg;
+//                     }
+//                     if(!found){
+//                         cout<<"delete-data error\n";
+//                         return;
+//                     }
 
-                     //for delete-record which xy have been changed
-                         if(map2D.delMorton_list.size() != 0){
-                             list<string>::iterator it = find(map2D.delMorton_list.begin(), map2D.delMorton_list.end(), morton_xy);
-                             if (it == map2D.delMorton_list.end()){ //not find
-                                 map2D.delMorton_list.push_back(morton_xy);
-                             }
-                         }else{
-                             map2D.delMorton_list.push_back(morton_xy);
-                         }
-    }
-}
+//                     //for delete-record which xy have been changed
+//                         if(map2D.delMorton_list.size() != 0){
+//                             list<string>::iterator it = find(map2D.delMorton_list.begin(), map2D.delMorton_list.end(), morton_xy);
+//                             if (it == map2D.delMorton_list.end()){ //not find
+//                                 map2D.delMorton_list.push_back(morton_xy);
+//                             }
+//                         }else{
+//                             map2D.delMorton_list.push_back(morton_xy);
+//                         }
+//    }
+//}
+*/
 
 ///initial-one time
 void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
 {
-    cout<<"---------receive initial---------\n";    
-    double time_start = stopwatch();
+    cout<<"---------receive initial---------\n";        
     pcl::PCLPointCloud2 pcl_pc2;
     pcl_conversions::toPCL(*my_msg,pcl_pc2);
     pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
     cout<<temp_cloud->points.size()<<endl;
-    map2D.setCloudFirst(Vec3(temp_cloud->points[0].x,temp_cloud->points[0].y,temp_cloud->points[0].z));
+    map2D.setCloudFirst(Vector3(temp_cloud->points[0].x,temp_cloud->points[0].y,temp_cloud->points[0].z));
 
+    double time_start = stopwatch();
     #pragma omp parallel for
     for (int i=1;i<temp_cloud->points.size();i++)
     {
 //        outfile<<temp_cloud->points[i].x<<","<<temp_cloud->points[i].y<<","<<temp_cloud->points[i].z<<endl;
-        uniformDivision(temp_cloud->points[i],false);
-     }
+        uniformDivision(temp_cloud->points[i],false);        
+    }
      double time_end = stopwatch();
 //    outfile.close();
     cout<<"division time: "<<(time_end-time_start)<<" s\n";
     cout<<"grid length "<<map2D.getGridLen()<<", morton size: "<<map2D.morton_list.size()<<endl;
 
+    cout<<"123\n";
     double time_start1 = stopwatch();
     map2D.create2DMap(demand);
     double time_end1 = stopwatch();
@@ -157,9 +166,9 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
         map2D.showInital(marker_pub,robot,0);
 //        map2D.showBottom(marker_pub_bo);
         cout<<"initial show done\n";
-    }    
+    }
 
-    Vec3 goal(robot.getGoal());
+    Vector3 goal(robot.getGoal());
     map2D.computeCost(goal,robot,markerArray_pub,markerArray_pub2,demand); //compute the cost map
 
     AstarPlanar globalPlanr(robot.getPosition(),robot.getGoal());
@@ -203,39 +212,41 @@ void changeCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg){
      //plan-not yet
 }
 
+/*
 ///delete points-many times
 ///the same procedure as initial
-void delCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg){
-     cout<<"---------receive Delete points---------\n";
-     double time_start1 = stopwatch();
-     pcl::PCLPointCloud2 pcl_pc2;
-     pcl_conversions::toPCL(*my_msg,pcl_pc2);
-     pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-     pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
-     cout<<temp_cloud->points.size()<<endl;
+//void delCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg){
+//     cout<<"---------receive Delete points---------\n";
+//     double time_start1 = stopwatch();
+//     pcl::PCLPointCloud2 pcl_pc2;
+//     pcl_conversions::toPCL(*my_msg,pcl_pc2);
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+//     pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+//     cout<<temp_cloud->points.size()<<endl;
 
-     map2D.delMorton_list.clear();
-     cout<<"point size "<<temp_cloud->points.size()<<endl;
-     #pragma omp parallel for
-     for (int i=0;i<temp_cloud->points.size();i++)
-     {
-         uniformDelDivision(temp_cloud->points[i]);
-      }
-     double time_end1 = stopwatch();
-     cout<<"delete map- division done. Time cost: "<<(time_end1-time_start1)<<" s\n";
-     cout<<"delete map- morton size: "<<map2D.delMorton_list.size()<<endl;
+//     map2D.delMorton_list.clear();
+//     cout<<"point size "<<temp_cloud->points.size()<<endl;
+//     #pragma omp parallel for
+//     for (int i=0;i<temp_cloud->points.size();i++)
+//     {
+//         uniformDelDivision(temp_cloud->points[i]);
+//      }
+//     double time_end1 = stopwatch();
+//     cout<<"delete map- division done. Time cost: "<<(time_end1-time_start1)<<" s\n";
+//     cout<<"delete map- morton size: "<<map2D.delMorton_list.size()<<endl;
 
-     double time_start2 = stopwatch();
-     map2D.del2DMap();
-     double time_end2 = stopwatch();
-     cout<<"change/delete map- 2D Map deletion done. Time cost: "<<(time_end2-time_start2)<<" s\n";
+//     double time_start2 = stopwatch();
+//     map2D.del2DMap();
+//     double time_end2 = stopwatch();
+//     cout<<"change/delete map- 2D Map deletion done. Time cost: "<<(time_end2-time_start2)<<" s\n";
 
-     if(marker_pub.getNumSubscribers()){
-         map2D.showInital(marker_pub,robot,0);
-         cout<<"change/delete map- show done\n";
-     }
-     //plan-not yet
-}
+//     if(marker_pub.getNumSubscribers()){
+//         map2D.showInital(marker_pub,robot,0);
+//         cout<<"change/delete map- show done\n";
+//     }
+//     //plan-not yet
+//}
+*/
 
 int main(int argc, char **argv)
 {

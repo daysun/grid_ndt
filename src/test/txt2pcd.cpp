@@ -58,9 +58,9 @@ void readTxt(string file,pcl::PointCloud<pcl::PointXYZ>& cloud,int & p)
     {
         vector<string> v;
         SplitString(s, v," ");
-            cloud.points[p].x = (strToFloat(v[0])-505900)/4;
-            cloud.points[p].y = ((strToFloat(v[1]))-6483739)/4;
-            cloud.points[p].z = (strToFloat(v[2])-130)/4;
+            cloud.points[p].x = strToFloat(v[0]);
+            cloud.points[p].y = strToFloat(v[1]);
+            cloud.points[p].z = strToFloat(v[2]);
             p++;
     }
     infile.close();
@@ -92,7 +92,7 @@ void showAllFiles( const char * dir_name ,pcl::PointCloud<pcl::PointXYZ>& cloud,
             strcmp( filename->d_name , "..") == 0    )
             continue;
         string fname = filename->d_name;
-        if( fname.substr(fname.size()-4,fname.size()).compare(".xyz")==0){
+        if( fname.substr(fname.size()-4,fname.size()).compare(".dat")==0){
             cout<<fname<<endl;
             readTxt("/home/daysun/rros/src/data/"+fname, cloud,p);
         }

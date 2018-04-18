@@ -79,17 +79,22 @@ ${PCL_LIBRARIES}
  ${OpenCV_LIBS} )
 
 #test
+add_executable(gene_pcd
+ src/test/genePcd.cpp)
+target_link_libraries(gene_pcd
+${PCL_LIBRARIES}
+ ${OpenCV_LIBS} )
 
-add_executable(pose2pcd_
- src/test/pose2pcd.cpp)
-target_link_libraries(pose2pcd_
-${PCL_LIBRARIES}
- ${OpenCV_LIBS} )
-add_executable(unikob2pcd_
- src/test/unikob2pcd.cpp)
-target_link_libraries(unikob2pcd_
-${PCL_LIBRARIES}
- ${OpenCV_LIBS} )
+#add_executable(pose2pcd_
+# src/test/pose2pcd.cpp)
+#target_link_libraries(pose2pcd_
+#${PCL_LIBRARIES}
+# ${OpenCV_LIBS} )
+#add_executable(unikob2pcd_
+# src/test/unikob2pcd.cpp)
+#target_link_libraries(unikob2pcd_
+#${PCL_LIBRARIES}
+# ${OpenCV_LIBS} )
 
 #test interactive_marker_tutorials
 #add_executable(interactive_marker

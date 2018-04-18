@@ -19,7 +19,7 @@
     <param name="resolution" type="double" value="0.5" />
     <param name="slope_interval" type="double" value="0.1" />
 
-//fr_23tri.pcd-414
+//freiburg_23tri.pcd-414
     <param name="demand" type="string" value="slope" />
     <param name="pos" type="string" value="30.02865,1.2212,0.40626" />
     <param name="goal" type="string" value="15.02865,-65.2212,1.3026" />
@@ -35,7 +35,7 @@
 
 //freiburg2_16.pcd
     <param name="demand" type="string" value="slope" />
-    <param name="pos" type="string" value="30.02865,1.2212,0.40626" />
+    <param name="pos" type="string" value="30.02865,1.7212,0.40626" />
     <param name="goal" type="string" value="63.02865,-37.2212,1.3026" />
     <param name="resolution" type="double" value="0.5" />
     <param name="slope_interval" type="double" value="0.4" />

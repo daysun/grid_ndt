@@ -79,9 +79,15 @@ ${PCL_LIBRARIES}
  ${OpenCV_LIBS} )
 
 #test
-add_executable(gene_pcd
+add_executable(xyz2pcd
+ src/test/xyz2pcd.cpp)
+target_link_libraries(xyz2pcd
+${PCL_LIBRARIES}
+ ${OpenCV_LIBS} )
+
+add_executable(genePcd
  src/test/genePcd.cpp)
-target_link_libraries(gene_pcd
+target_link_libraries(genePcd
 ${PCL_LIBRARIES}
  ${OpenCV_LIBS} )
 

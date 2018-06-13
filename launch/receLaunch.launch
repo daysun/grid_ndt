@@ -6,18 +6,17 @@ name="receivePcd"
 output="screen"
 >
 <param name="demand" type="string" value="slope" />
-<param name="pos" type="string" value="30.02865,1.7212,0.40626" />
-<param name="goal" type="string" value="63.02865,-37.2212,1.3026" />
+<param name="pos" type="string" value="30.02865,1.2212,0.50626" />
+<param name="goal" type="string" value="15.02865,-65.2212,1.3026" />
 <param name="resolution" type="double" value="0.5" />
-<param name="slope_interval" type="double" value="0.4" />
-
-
+<param name="slope_interval" type="double" value="0.08" />
+<param name="z_resolution" type="double" value="0.1" />
 </node>
-
 
 <node
 name="rviz"
 pkg="rviz"
 type="rviz"
-required="true" />
+args="-d $(find grid_ndt)/launch/freiburg_23tri.rviz" output="log"
+/>
 </launch>

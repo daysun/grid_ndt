@@ -30,19 +30,19 @@ using namespace octomath;
 typedef multimap<string,daysun::OcNode *>  MAP_INT_MORTON_MULTI;
 typedef multimap<string,daysun::OcNode *>::iterator iterIntNode;
 
-RobotSphere robot(0.5); //radius--variable--according to the range of map
+RobotSphere robot(0.25); //radius--variable--according to the range of map
 //test-0.25, sys-0.125 vision-1.5 bag-1
-daysun::TwoDmap map2D(0.5);
+daysun::TwoDmap map2D(0.5,0.1);
 ros::Publisher marker_pub,change_pub,markerArray_pub,markerArray_pub2,marker_pub_bo,route_pub/*,del_pub*/;
 string demand;
 
 //ofstream outfile("/home/daysun/testPointsSys.txt", ofstream::app);
 
-void uniformDivision( const pcl::PointXYZ temp,bool change){
+void uniformDivision( const pcl::PointXYZ temp,bool change){    
     string morton_xy;
-            int morton_z;
-//    Vec3 temp3(temp.x,temp.y,temp.z);
+    int morton_z;
     Vector3 temp3(temp.x,temp.y,temp.z);
+//    cout<<"ok\n";
     map2D.transMortonXYZ(temp3,morton_xy,morton_z);
     //for change-record which xy have been changed
     if(change){
@@ -143,9 +143,10 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
     pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
     cout<<temp_cloud->points.size()<<endl;
     map2D.setCloudFirst(Vector3(temp_cloud->points[0].x,temp_cloud->points[0].y,temp_cloud->points[0].z));
+    cout<<"set first end\n";
 
     double time_start = stopwatch();
-    #pragma omp parallel for
+//    #pragma omp parallel for
     for (int i=1;i<temp_cloud->points.size();i++)
     {
 //        outfile<<temp_cloud->points[i].x<<","<<temp_cloud->points[i].y<<","<<temp_cloud->points[i].z<<endl;
@@ -155,8 +156,6 @@ void chatterCallback(const sensor_msgs::PointCloud2::ConstPtr & my_msg)
 //    outfile.close();
     cout<<"division time: "<<(time_end-time_start)<<" s\n";
     cout<<"grid length "<<map2D.getGridLen()<<", morton size: "<<map2D.morton_list.size()<<endl;
-
-    cout<<"123\n";
     double time_start1 = stopwatch();
     map2D.create2DMap(demand);
     double time_end1 = stopwatch();
@@ -257,14 +256,16 @@ int main(int argc, char **argv)
   ros::param::get("~demand",demand); //which way to create map,for test
   string pos;
   string goal;
-  float resolution,slope_interval;
+  float resolution,slope_interval,z_resolution;
   ros::param::get("~pos",pos);
   ros::param::get("~goal",goal);
   ros::param::get("~resolution",resolution);
+  ros::param::get("~z_resolution",z_resolution);
   ros::param::get("~slope_interval",slope_interval);
   robot.setPos(pos);
   robot.setGoal(goal);
   map2D.setLen(resolution);
+  map2D.setZLen(z_resolution);
   map2D.setInterval(slope_interval);
 
   marker_pub = n.advertise<visualization_msgs::MarkerArray>("initial_marker_array", 1000);

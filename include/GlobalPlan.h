@@ -106,8 +106,8 @@ public:
                                 if((*itS)->g > temp->g + map2D.TravelCost(q,itn)){
                                     //remove and insert
                                     //update g and f, and father node
-                                    cout<<"itS g"<<(*itS)->g<<endl; ///dont know if its right
-                                    cout<<"itemp g "<<(itTemp->second)->g<<endl;
+//                                    cout<<"itS g"<<(*itS)->g<<endl; ///dont know if its right
+//                                    cout<<"itemp g "<<(itTemp->second)->g<<endl;
                                     (*itS)->g = temp->g + map2D.TravelCost(q,itn);
                                     (*itS)->f = (*itS)->g + (*itS)->h;
                                     (*itS)->father = temp;
@@ -142,11 +142,11 @@ public:
                     open_queue.erase(it_Open);
                 }
             }else{
-                cout<<"Sth wrong with the start slope, cant find it.\n";
+                cout<<"1,Sth wrong with the start slope, cant find it.\n";
              return false;
             }
         }else{
-            cout<<"Sth wrong with the start slope, cant find it.\n";
+            cout<<"2,Sth wrong with the start slope, cant find it.\n";
              return false;
         }
 

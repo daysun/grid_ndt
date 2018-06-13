@@ -36,8 +36,7 @@ public:
     Vector3 getPosition(){return position;}
     Vector3 getGoal(){return goal;}
     float getReachableHeight(){
-        reachableHeight = r;
-        return reachableHeight;}
+        return 0.15;}
     float getRough(){
         //should be changed
         return 100;

@@ -4,27 +4,35 @@
     <param name="pos" type="string" value="8.02865,32.5212,-0.40626" />
     <param name="goal" type="string" value="10.02865,40.2212,-0.126" />
     <param name="resolution" type="double" value="0.25" />
-    <param name="slope_interval" type="double" value="0.1" />
+    <param name="slope_interval" type="double" value="0.08" />
+    <param name="z_resolution" type="double" value="0.1" />
+    //for 0.5
+    <param name="pos" type="string" value="8.02865,32.5212,-0.40626" />
+    <param name="goal" type="string" value="10.02865,39.2212,-0.056" />
+
     //right
     <param name="demand" type="string" value="true" />
     <param name="pos" type="string" value="10.02865,4.5212,0.040626" />
     <param name="goal" type="string" value="12.02865,12.2212,0.126" />
     <param name="resolution" type="double" value="0.5" />
-    <param name="slope_interval" type="double" value="0.3" />
+    <param name="slope_interval" type="double" value="0.08" />
+    <param name="z_resolution" type="double" value="0.1" />
 
 //motala52_4.pcd
     <param name="demand" type="string" value="slope" />
     <param name="pos" type="string" value="10.02865,20.5212,0.40626" />
     <param name="goal" type="string" value="15.02865,5.2212,0.406" />
     <param name="resolution" type="double" value="0.5" />
-    <param name="slope_interval" type="double" value="0.1" />
+    <param name="slope_interval" type="double" value="0.08" />
+    <param name="z_resolution" type="double" value="0.1" />
 
 //freiburg_23tri.pcd-414
     <param name="demand" type="string" value="slope" />
-    <param name="pos" type="string" value="30.02865,1.2212,0.40626" />
+    <param name="pos" type="string" value="30.02865,1.2212,0.50626" />
     <param name="goal" type="string" value="15.02865,-65.2212,1.3026" />
     <param name="resolution" type="double" value="0.5" />
-    <param name="slope_interval" type="double" value="0.4" />
+    <param name="slope_interval" type="double" value="0.08" />
+    <param name="z_resolution" type="double" value="0.1" />
 
 //fullSys.pcd
     <param name="demand" type="string" value="slope" />
@@ -32,10 +40,20 @@
     <param name="goal" type="string" value="-3.69998,-1.128561,0.1197856" />
     <param name="resolution" type="double" value="0.1" />
     <param name="slope_interval" type="double" value="0.08" />
+    <param name="z_resolution" type="double" value="0.1" />
 
 //freiburg2_16.pcd
     <param name="demand" type="string" value="slope" />
-    <param name="pos" type="string" value="30.02865,1.7212,0.40626" />
-    <param name="goal" type="string" value="63.02865,-37.2212,1.3026" />
+    <param name="pos" type="string" value="30.02865,1.7212,0.50626" />
+    <param name="goal" type="string" value="63.02865,-36.2212,1.33026" />
     <param name="resolution" type="double" value="0.5" />
-    <param name="slope_interval" type="double" value="0.4" />
+    <param name="slope_interval" type="double" value="0.08" />
+    <param name="z_resolution" type="double" value="0.1" />
+
+//bridge_ground.pcd
+    <param name="demand" type="string" value="slope" />
+    <param name="pos" type="string" value="9.5,3,3" />
+    <param name="goal" type="string" value="9.5,3,1" />
+    <param name="resolution" type="double" value="0.1" />
+    <param name="slope_interval" type="double" value="0.08" />
+    <param name="z_resolution" type="double" value="0.05" />

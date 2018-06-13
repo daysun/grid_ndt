@@ -60,7 +60,7 @@ struct OcNode
         if((N < MINPOINTSIZE) /*&& (covariance_matrix == Eigen::Matrix3f::Zero(3,3)) && (xyz_centroid == Eigen::Vector3f::Zero())*/)
             return true;// emtpty
         else return false; //full
-    }
+    }  
 
     //now for change-no use
     bool isSlope(multimap<string,OcNode *> & map_xy,bool & up, bool & down,float slope_interval){
@@ -184,12 +184,12 @@ public:
     map<int,Slope *,CmpByKeyUD> map_slope; //z, slope
     Cell(const string morton):morton(morton){}
     string getMorton(){return morton;}
-
 };
 
 
 class TwoDmap {
     float gridLen; //resolution
+    float zLen; //z-resolution
     Vector3 cloudFirst; //initial--the first node--deem as (0,0,0)
     float slope_interval;//interval of slope
 
@@ -282,9 +282,10 @@ class TwoDmap {
                 }else if(comand ==2.5){
                   if(sit->second->up != true){
                       if((sit->second)->rough <= robot.getRough())
-                          if(countAngle((sit->second)->normal,normal) <= robot.getAngle())
+                          if(countAngle((sit->second)->normal,normal) <= robot.getAngle()){
                               if(abs((sit->second)->mean(2) - mean(2) )<= robot.getReachableHeight())//use mean to compute
                                   listm.push_back(sit->second);
+                          }
                   }
                 }else if(comand ==3){
                     listm.push_back(sit->second);
@@ -305,9 +306,13 @@ class TwoDmap {
                   if(sit->second->up != true){
                       checkList.push_back(sit->second);
                       if((sit->second)->rough <= robot.getRough())
-                          if(countAngle((sit->second)->normal,normal) <= robot.getAngle())
-                              if(abs((sit->second)->mean(2) - mean(2) )<= robot.getReachableHeight())//use mean to compute
+                          if(countAngle((sit->second)->normal,normal) <= robot.getAngle()){
+//                              cout<<"sloep.z-mean "<<(sit->second)->mean(2)-mean(2)<<endl;
+                              if(abs((sit->second)->mean(2) - mean(2) )<= robot.getReachableHeight()){//use mean to compute
                                   listm.push_back(sit->second);
+                              }
+                          }
+
                   }
                   sit++;
              }
@@ -346,7 +351,7 @@ class TwoDmap {
     bool CollisionCheck(Slope * slope,int n,RobotSphere & robot){
         float r =robot.getRobotR();//radius
         if(slope->up == true){
-            cout<<"up collide\n";
+//            cout<<"up collide\n";
             return true; //collide
         }
         //find all the surrounding neighbors
@@ -394,11 +399,6 @@ class TwoDmap {
                 if(ss == (it->second)->map_slope.end()) cout<<"collide wrong\n";
                 ss++; //the next one
                 if(ss != (it->second)->map_slope.end()){
-//                    int height = mtnZToNum((ss->second)->morton_z);
-//                    if(height < (mtnZToNum(z)+2*r/gridLen))
-//                        return true;//collide
-//                    else
-//                        return false;//no collide
                     if(((ss->second)->mean(2) < slope->mean(2) + 2*r) &&
                             ((ss->second)->mean(2) - slope->mean(2) >robot.getReachableHeight()))
                         return true;//collide
@@ -415,7 +415,7 @@ class TwoDmap {
         float r =robot.getRobotR();//radius
         //if(slope->up == true){
         if(slope->countUp(map_xy,getInterval()) == true){
-            cout<<"up collide\n";
+//            cout<<"up collide\n";
             return true; //collide
         }
         //find all the surrounding neighbors
@@ -484,13 +484,17 @@ class TwoDmap {
 public:
     multimap<string,OcNode *>  map_xy/*,map_z*/; //ABCD+morton, UD+height---index
 //    multimap<string,OcNode *,CmpByKeyUD> map_z;
-    TwoDmap(const float res):gridLen(res){}
+    TwoDmap(const float res,const float zres):gridLen(res),zLen(zres){}
     float getGridLen(){return gridLen;}
+    float getZLen(){return zLen;}
     void setCloudFirst(Vector3 p){
         cloudFirst = p;
     }
     void setLen(float len){
         gridLen = len;
+    }
+    void setZLen(float len){
+        zLen = len;
     }
     void setInterval(float interval){
         slope_interval = interval;
@@ -518,7 +522,7 @@ public:
 
   //for now-- no consideration for the height of destination
   float TravelCost(Vector3 cur,Vector3 des,float goal = 0){
-      float cost = sqrt(pow(cur(0)-des(0),2) + pow(cur(1)-des(1),2));
+      float cost = sqrt(pow(cur(0)-des(0),2) + pow(cur(1)-des(1),2) + pow(cur(2)-des(2),2));
         return cost;
   }
 
@@ -550,7 +554,7 @@ public:
          string morton_xy = slope->morton_xy;
          int morton_z= slope->morton_z;
          Vector3f normal = slope->normal;
-         Vector3 mean = slope->mean;
+         Vector3 mean = slope->mean;         
          int x,y;
          string belongXY = morton_xy.substr(0,1);
          int morton = strToInt( morton_xy.substr(1,morton_xy.length()-1));
@@ -935,10 +939,10 @@ public:
              y = cloudFirst(1) - (b-0.5)*gridLen ;
          }
          if(s_z >0){
-             z = cloudFirst(2) + (abs(s_z)-0.5)*gridLen;
+             z = cloudFirst(2) + (abs(s_z)-0.5)*zLen;
          }
          else if(s_z <0){
-             z = cloudFirst(2) - (abs(s_z)-0.5)*gridLen;
+             z = cloudFirst(2) - (abs(s_z)-0.5)*zLen;
          }
     }
 
@@ -960,7 +964,7 @@ public:
         else morton_z = -1; //down
         int nx = (int)ceil(float(abs(position(0)-cloudFirst(0))/gridLen));
         int ny = (int)ceil(float(abs(position(1)-cloudFirst(1))/gridLen));
-        int nz = (int)ceil(float(abs(position(2)-cloudFirst(2))/gridLen));
+        int nz = (int)ceil(float(abs(position(2)-cloudFirst(2))/zLen));
         nx == 0? nx =1:nx=nx;
         ny == 0? ny =1:ny=ny;
         nz == 0? nz =1:nz=nz;
@@ -1084,9 +1088,9 @@ public:
                     m_s.pose.orientation.y = 0;
                     m_s.pose.orientation.z = 0;
                     m_s.pose.orientation.w = 1.0;
-                    m_s.color.a = 0.0;
-                    m_s.color.r = 0.5;
-                    m_s.color.g = 0.5;
+                    m_s.color.a = 1;
+                    m_s.color.r = 1;
+                    m_s.color.g = 0;
                     m_s.lifetime = ros::Duration();
                     mArray.markers.push_back(m_s);
                     ilv++;j++;
@@ -1094,6 +1098,26 @@ public:
             }
             //2-for every cell
             if(map_cell.size() != 0){
+                //for color
+                float zmin=1000,zmax=-1000;
+                map<string,Cell*>::iterator color_cell;
+
+                for(color_cell= map_cell.begin();color_cell!=map_cell.end();color_cell++){
+                    Cell * cell = color_cell->second;
+                    if(cell->map_slope.size()!=0){
+                        map<int,Slope *,CmpByKeyUD>::iterator color_slope = cell->map_slope.begin();
+                        zmin = (color_slope->second)->mean(2)< zmin ? (color_slope->second)->mean(2): zmin;
+                        if(cell->map_slope.size()==1){
+                            zmax = (color_slope->second)->mean(2)> zmax ? (color_slope->second)->mean(2): zmax;
+                        }else{
+                            map<int,Slope *,CmpByKeyUD>::iterator color_slope2 = --(cell->map_slope.end());
+                            zmax = (color_slope2->second)->mean(2)> zmax ? (color_slope2->second)->mean(2): zmax;
+                        }
+                    }
+                }
+//                cout<<"--all min,max"<<zmin<<","<<zmax<<endl;
+
+                //add markers
                 map<string,Cell*>::iterator cell_iter= map_cell.begin();
                 while(cell_iter != map_cell.end()){
                      Cell * cell = cell_iter->second;                                  
@@ -1139,11 +1163,11 @@ public:
                       while(slItor != cell->map_slope.end()){
                           i++;slope_num++;
                          Vector3f normal = (slItor->second)->normal;
- //                            float rough = (slItor->second)->rough;
-                         string s_xy = (slItor->second)->morton_xy;
-                         int s_z = (slItor->second)->morton_z;
-                         float x,y,z;
-                         countPositionXYZ(x,y,z,s_xy,s_z);
+//                         float rough = (slItor->second)->rough;
+//                         string s_xy = (slItor->second)->morton_xy;
+//                         int s_z = (slItor->second)->morton_z;
+//                         float x,y,z;
+//                         countPositionXYZ(x,y,z,s_xy,s_z);
                          //add marker
                          visualization_msgs::Marker marker;
                          marker.ns = "basic_shapes";
@@ -1155,7 +1179,7 @@ public:
                          ///changed
                          marker.pose.position.x = (slItor->second)->mean(0);
                          marker.pose.position.y = (slItor->second)->mean(1);
-                          marker.pose.position.z = (slItor->second)->mean(2);
+                         marker.pose.position.z = (slItor->second)->mean(2);
 //                          marker.pose.position.x = x;
 //                          marker.pose.position.y = y;
 //                           marker.pose.position.z = (slItor->second)->mean(2);
@@ -1164,19 +1188,30 @@ public:
                           marker.pose.orientation.y = normal(1);
                           marker.pose.orientation.z = normal(2);
                           marker.pose.orientation.w = 1.0;
-//                         if(countAngle(Vector3f(0,0,1),normal)> 20){
-//                             marker.pose.orientation.x = 0;
-//                             marker.pose.orientation.y = 2.75;
-//                             marker.pose.orientation.z = 0;
-//                         }
 
                          marker.scale.x = radius-0.01; //the same as radius
                          marker.scale.y = radius-0.01;
                          marker.scale.z = 0.03/*rough*/;
-                         marker.color.a = 0.9;
-                         marker.color.r = 1;
+                         marker.color.a = 0.85;
+
+                         //color gradient
+                         float current = ((slItor->second)->mean(2)-zmin)/(zmax-zmin);
+                         if(current>0.5){
+                             marker.color.r = 2*current-0.7 <=1 ? 2*current-0.7:1;
+                             marker.color.b = 0;
+                             marker.color.g = -2*current+2;
+                         }else{
+                             marker.color.r = 0;
+                             marker.color.b = -2*current+1;
+                             marker.color.g = 2*current;
+                         }
+
+                         //color-red
+//                         marker.color.r = 1;
+
                          if(color == 1){
                              //for testing change
+                             marker.color.r = 1;
                              marker.color.g =1;
                              marker.color.b =1;
                          }
@@ -1262,7 +1297,7 @@ public:
              if(ss != (it->second)->map_slope.end()){
                  ss->second->h = 0; //goal.h = 0
                  Q.push_back( ss->second);
-//                 cout<<"find start\n";
+                 cout<<"find goal\n";
              }else{
                  cout<<"Goal position wrong: cant find goal slope.\n";
                  return ;
@@ -1273,17 +1308,17 @@ public:
 //         cout<<"n "<<n<<endl;
 
          //compute the surrounding morton code
-         if(demand.compare("slope") == 0){
+         if(demand.compare("slope") == 0){             
              while(Q.size() != 0){
                  if(!CollisionCheck(Q.front(),n,robot )){
                      //no collision
-                     list<Slope *> neiSlope = AccessibleNeighbors(Q.front(),robot,checkList);
+                     list<Slope *> neiSlope = AccessibleNeighbors(Q.front(),robot,checkList);                     
                      list<Slope *>::iterator itN = neiSlope.begin();
                      while(itN != neiSlope.end()){
-//                         if((*itN)->up == true){
-//                             (*itN)->h = FLT_MAX;
-//                             closed.push_back(*itN);
-//                         }else{
+                         if((*itN)->up == true){
+                             (*itN)->h = FLT_MAX;
+                             closed.push_back(*itN);
+                         }else{
                              Vector3 q,itn;
                              ///use the morton_xy and morton_z
                              {
@@ -1304,7 +1339,7 @@ public:
                                      Q.push_back(*itN);
                                  }
                              }
-//                         }
+                         }
                          itN++;
                      }
                      traversability.push_back(Q.front());
